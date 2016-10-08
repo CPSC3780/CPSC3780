@@ -5,6 +5,7 @@
 
 using boost::asio::ip::udp;
 
+// TODO: client should be a class
 int main()
 {
 	try
