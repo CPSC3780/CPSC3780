@@ -23,15 +23,15 @@ int main()
 		//  return server endpoint
 		udp::endpoint server_endpoint = *resolver.resolve(query);
 
-		// Create a UDP socket to create connection with server
+		// Create a UDP socket for communication with server
 		udp::socket socket(io_service);
 		socket.open(udp::v4());
 
-		// initiate connection with the server
-		boost::array<char, 1> send_buf = {{0}};
-		socket.send_to(boost::asio::buffer(send_buf), server_endpoint);
+		// communication with the server
+		const std::string message = "Hello world!";
+		socket.send_to(boost::asio::buffer(message, message.size()), server_endpoint);
 
-		// Listen for any data the server sends back
+		// Listen for any data the server endpoint sends back
 		boost::array<char, 128> recv_buf;
 		udp::endpoint sender_endpoint;
 		size_t len = socket.receive_from(boost::asio::buffer(recv_buf), sender_endpoint);
