@@ -140,6 +140,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(BOOST_ROOT)\libs;$(BOOST_ROOT)\stage\lib</AdditionalLibraryDirectories>
     </Link>
     <BuildLog>
       <Path>$(SolutionDir)\build\$(Platform)\$(Configuration)\log\$(MSBuildProjectName).log</Path>
@@ -157,6 +158,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(BOOST_ROOT)\libs;$(BOOST_ROOT)\stage\lib</AdditionalLibraryDirectories>
     </Link>
     <BuildLog>
       <Path>$(SolutionDir)\build\$(Platform)\$(Configuration)\log\$(MSBuildProjectName).log</Path>
@@ -174,6 +176,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(BOOST_ROOT)\libs;$(BOOST_ROOT)\stage\lib</AdditionalLibraryDirectories>
     </Link>
     <BuildLog>
       <Path>$(SolutionDir)\build\$(Platform)\$(Configuration)\log\$(MSBuildProjectName).log</Path>
@@ -191,6 +194,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(BOOST_ROOT)\libs;$(BOOST_ROOT)\stage\lib</AdditionalLibraryDirectories>
     </Link>
     <BuildLog>
       <Path>$(SolutionDir)\build\$(Platform)\$(Configuration)\log\$(MSBuildProjectName).log</Path>
@@ -208,6 +212,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(BOOST_ROOT)\libs;$(BOOST_ROOT)\stage\lib</AdditionalLibraryDirectories>
     </Link>
     <BuildLog>
       <Path>$(SolutionDir)\build\$(Platform)\$(Configuration)\log\$(MSBuildProjectName).log</Path>
@@ -225,6 +230,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(BOOST_ROOT)\libs;$(BOOST_ROOT)\stage\lib</AdditionalLibraryDirectories>
     </Link>
     <BuildLog>
       <Path>$(SolutionDir)\build\$(Platform)\$(Configuration)\log\$(MSBuildProjectName).log</Path>
