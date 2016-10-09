@@ -74,6 +74,7 @@ void sendLoop(
 	while(!exitClient)
 	{
 		// communication with the server
+		std::cout << "Enter a message: " << std::endl;
 		std::cin >> message;
 
 		if(message == "exit")
