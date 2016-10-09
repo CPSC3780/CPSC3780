@@ -16,6 +16,7 @@ int main()
 {
 	// specify port the server listens on
 	const int port = 8080;
+	std::cout << "Server started at: " << std::endl;
 
 	try
 	{
@@ -31,8 +32,6 @@ int main()
 			boost::bind(receiveConnectionsLoop, boost::ref(socket)));
 
 		threads.join_all();
-
-		std::cout << "Server started at: " << std::endl;
 
 	}
 	catch(std::exception& e)

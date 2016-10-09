@@ -43,6 +43,9 @@ int main()
 		udp::socket socket(ioService);
 		socket.open(udp::v4());
 
+		boost::array<char, 1> send_buf = {{0}};
+		socket.send_to(boost::asio::buffer(send_buf), serverEndPoint);
+
 		boost::thread_group threads;
 
 		// thread for sending messages to the server
@@ -94,21 +97,29 @@ void receiveLoop(
 
 	while(!exitClient)
 	{
-		// Listen for any data the server endpoint sends back
-		boost::array<char, 128> recv_buf;
-
-		size_t incomingMessageLength = 
-			socket.receive_from(boost::asio::buffer(recv_buf), senderEndPoint);
-
-		if(incomingMessageLength > 0)
+		try
 		{
-			// output data
-			std::cout.write(
-				recv_buf.data(), 
-				incomingMessageLength);
+			// Listen for any data the server endpoint sends back
+			boost::array<char, 128> recv_buf;
+
+			size_t incomingMessageLength =
+				socket.receive_from(boost::asio::buffer(recv_buf), senderEndPoint);
+
+			if(incomingMessageLength > 0)
+			{
+				// output data
+				std::cout.write(
+					recv_buf.data(),
+					incomingMessageLength);
+			}
+
+			// sleep
+			boost::this_thread::sleep(boost::posix_time::millisec(updateInterval));
+		}
+		catch(std::exception& e)
+		{
+			std::cout << e.what() << std::endl;
 		}
 
-		// sleep
-		boost::this_thread::sleep(boost::posix_time::millisec(updateInterval));
 	}
 }
