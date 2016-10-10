@@ -114,6 +114,8 @@ void receiveLoop(
 					incomingMessageLength);
 			}
 
+			std::cout << std::endl;
+
 			// sleep
 			boost::this_thread::sleep(boost::posix_time::millisec(updateInterval));
 		}

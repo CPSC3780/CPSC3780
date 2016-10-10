@@ -29,5 +29,13 @@
     <ClCompile Include="src\Client\clientMain.cpp">
       <Filter>Source Files\Client</Filter>
     </ClCompile>
+    <ClCompile Include="src\Server\server.cpp">
+      <Filter>Source Files\Server</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Server\server.h">
+      <Filter>Source Files\Server</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
