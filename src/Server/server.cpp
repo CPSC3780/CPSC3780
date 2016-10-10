@@ -18,7 +18,8 @@ const uint16_t listeningPort = 8080;
 //  Initializes the socket with the ioService and the lisentingPort, and sets
 //  the terminate condition to false.
 //------------------------------------------------------------------------------
-server::server(boost::asio::io_service& ioService) :
+server::server(
+	boost::asio::io_service& ioService) :
 	m_UDPsocket(ioService, udp::endpoint(udp::v4(), listeningPort))
 {
 	this->m_terminate = false;

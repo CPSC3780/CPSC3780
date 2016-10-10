@@ -6,13 +6,18 @@ class server
 {
 public:
 	// #TODO_AH header comment blocks
-	server(boost::asio::io_service &ioService);
+	server(
+		boost::asio::io_service &ioService);
+
 	void run();
 
 private:
 	void listenLoop();
+
 	void relayLoop();
+
 	void relayUDP();
+
 	void relayBluetooth();
 
 	// Member Variables
