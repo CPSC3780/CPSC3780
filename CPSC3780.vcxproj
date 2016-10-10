@@ -240,6 +240,7 @@
     </BuildLog>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Client\client.cpp" />
     <ClCompile Include="src\Client\clientMain.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Server|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Test|x64'">true</ExcludedFromBuild>
@@ -267,6 +268,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Client\client.h" />
     <ClInclude Include="src\Server\server.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

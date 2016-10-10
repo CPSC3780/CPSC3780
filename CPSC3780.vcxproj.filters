@@ -32,10 +32,16 @@
     <ClCompile Include="src\Server\server.cpp">
       <Filter>Source Files\Server</Filter>
     </ClCompile>
+    <ClCompile Include="src\Client\client.cpp">
+      <Filter>Source Files\Client</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Server\server.h">
       <Filter>Source Files\Server</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Client\client.h">
+      <Filter>Source Files\Client</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
