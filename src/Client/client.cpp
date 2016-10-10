@@ -159,7 +159,7 @@ void client::receiveOverUDP()
 
 		size_t incomingMessageLength =
 			m_UDPsocket.receive_from(
-				boost::asio::buffer(recv_buf), 
+				boost::asio::buffer(recv_buf),
 				this->m_serverEndPoint);
 
 		if(incomingMessageLength > 0)

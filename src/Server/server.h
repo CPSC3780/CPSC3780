@@ -21,7 +21,7 @@ private:
 	void relayBluetooth();
 
 	// Member Variables
-	boost::asio::ip::udp::socket m_UDPsocket; // 
+	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::thread_group m_threads;
 	boost::asio::ip::udp::endpoint m_remoteEndPoint; // #TODO should probably be a list
 	bool m_terminate;
