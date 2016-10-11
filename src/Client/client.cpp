@@ -77,7 +77,7 @@ void client::inputLoop()
 
 		// communication with the server
 		std::cout << "Enter a message: " << std::endl;
-		std::cin >> message;
+		std::getline(std::cin, message);
 
 		if(message == "/exit")
 		{
