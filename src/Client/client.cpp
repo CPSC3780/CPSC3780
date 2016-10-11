@@ -43,9 +43,9 @@ client::client(
 		udp::v4());
 
 	// necessary? getting a crash later when trying to receive if removed
-	boost::array<char, 1> send_buf = {{0}};
+	std::string initiateMessage = "Client has connected.\n";
 	m_UDPsocket.send_to(
-		boost::asio::buffer(send_buf), m_serverEndPoint);
+		boost::asio::buffer(initiateMessage), m_serverEndPoint);
 };
 
 //-------------------------------------------------------------------------- run
@@ -77,7 +77,7 @@ void client::inputLoop()
 
 		// communication with the server
 		std::cout << "Enter a message: " << std::endl;
-		std::cin >> message;
+		std::getline(std::cin, message);
 
 		if(message == "/exit")
 		{
