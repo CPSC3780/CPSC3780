@@ -18,6 +18,9 @@
     <Filter Include="Source Files\Test">
       <UniqueIdentifier>{49613ff2-96e1-4b98-9c92-5a3d9e314439}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Common">
+      <UniqueIdentifier>{4e50a9f3-115c-485c-8a17-aa96cb1c8c63}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Server\serverMain.cpp">
@@ -36,7 +39,7 @@
       <Filter>Source Files\Client</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\dataMessage.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -46,6 +49,8 @@
     <ClInclude Include="src\Client\client.h">
       <Filter>Source Files\Client</Filter>
     </ClInclude>
-    <ClInclude Include="src\Common\dataMessage.h" />
+    <ClInclude Include="src\Common\dataMessage.h">
+      <Filter>Source Files\Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
