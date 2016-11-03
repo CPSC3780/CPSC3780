@@ -82,6 +82,8 @@ void client::inputLoop()
 		if(message == "/exit")
 		{
 			this->m_terminate = true;
+			std::string disconnect_message = "Client has disconnected.";
+			this->sendOverUDP(disconnect_message);
 			break;
 		}
 		else
@@ -117,7 +119,6 @@ void client::inputLoop()
 void client::sendOverUDP(
 	const std::string& message)
 {
-	std::cout << "test" << std::endl;
 	m_UDPsocket.send_to(
 		boost::asio::buffer(message, message.size()),
 		m_serverEndPoint);

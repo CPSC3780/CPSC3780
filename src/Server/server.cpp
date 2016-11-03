@@ -81,7 +81,7 @@ void server::listenLoop()
 
 		// send a warm welcome back :)
 		std::string message =
-			"Hello! how are you?";
+			"\nHello! how are you?";
 
 		boost::system::error_code ignored_error;
 
