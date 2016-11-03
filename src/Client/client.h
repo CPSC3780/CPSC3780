@@ -1,6 +1,7 @@
 // Boost
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
+#include <vector>
 
 class client
 {
@@ -22,7 +23,7 @@ private:
 	void inputLoop();
 
 	void sendOverUDP(
-		const std::string& message);
+		std::vector<std::string> message);
 
 	void sendOverBluetooth(
 		const std::string& message);

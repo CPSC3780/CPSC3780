@@ -1,6 +1,7 @@
 // STL
 #include <cassert>
 #include <string.h>
+#include <vector>
 
 // Boost
 #include <boost/array.hpp>
@@ -92,7 +93,8 @@ void client::inputLoop()
 		{
 			this->m_terminate = true;
 			std::string disconnect_message = "Client has disconnected.";
-			this->sendOverUDP(disconnect_message);
+			dataMessage currentMessage(disconnect_message, "", "");
+			this->sendOverUDP(currentMessage.asVector());
 			break;
 		}
 		else
@@ -103,7 +105,7 @@ void client::inputLoop()
 				case client::protocol::UDP:
 				{
 					// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
-					this->sendOverUDP(currentMessage.viewPayload());
+					this->sendOverUDP(currentMessage.asVector());
 					break;
 				}
 				case client::protocol::Bluetooth:
@@ -127,11 +129,12 @@ void client::inputLoop()
 //  None
 //------------------------------------------------------------------------------
 void client::sendOverUDP(
-	const std::string& message)
+	std::vector<std::string> message)
 {
+
 	// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
 	m_UDPsocket.send_to(
-		boost::asio::buffer(message, message.size()),
+		boost::asio::buffer(message),
 		m_serverEndPoint);
 };
 
