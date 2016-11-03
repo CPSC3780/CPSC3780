@@ -1,8 +1,7 @@
 // Boost
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
-
-class string;
+#include <vector>
 
 class client
 {
@@ -24,7 +23,7 @@ private:
 	void inputLoop();
 
 	void sendOverUDP(
-		const std::string& message);
+		std::vector<std::string> message);
 
 	void sendOverBluetooth(
 		const std::string& message);
@@ -34,6 +33,8 @@ private:
 	void receiveOverUDP();
 
 	void receiveOverBluetooth();
+
+	void serializeUDPMessage(std::vector<std::string>);
 
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
