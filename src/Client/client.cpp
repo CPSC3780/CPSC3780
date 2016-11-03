@@ -4,7 +4,7 @@
 
 // Boost
 #include <boost/array.hpp>
-#include <boost/serialization/vector.hpp>
+#include <boost/asio/buffer.hpp>
 
 // Project
 #include "client.h"
@@ -49,10 +49,10 @@ client::client(
 
 	dataMessage currentMessage(initiateMessage, "", "");
 
-	// TODO_MT: we need to serialize the vector data so we can send everything in one go
+	// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
 
 	m_UDPsocket.send_to(
-		boost::asio::buffer(currentMessage.viewPayload()), m_serverEndPoint);
+		boost::asio::buffer(currentMessage.asVector()), m_serverEndPoint);
 };
 
 //-------------------------------------------------------------------------- run
@@ -85,6 +85,7 @@ void client::inputLoop()
 		// communication with the server
 		std::cout << "Enter a message: " << std::endl;
 		std::getline(std::cin, message);
+		// TODO_MT: we need to send vector data through the buffer so we can send everything in one go
 		dataMessage currentMessage(message, "", "");
 
 		if(currentMessage.viewPayload() == "/exit")
@@ -101,6 +102,7 @@ void client::inputLoop()
 			{
 				case client::protocol::UDP:
 				{
+					// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
 					this->sendOverUDP(currentMessage.viewPayload());
 					break;
 				}
@@ -127,6 +129,7 @@ void client::inputLoop()
 void client::sendOverUDP(
 	const std::string& message)
 {
+	// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
 	m_UDPsocket.send_to(
 		boost::asio::buffer(message, message.size()),
 		m_serverEndPoint);
