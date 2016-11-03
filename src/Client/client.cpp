@@ -47,13 +47,26 @@ client::client(
 
 	// necessary? getting a crash later when trying to receive if removed
 	std::string initiateMessage = "Client at has connected.\n";
-
-	dataMessage currentMessage(initiateMessage, "", "");
+	std::string source = "test";
+	std::string destination = "broadcast";
+	// dataMessage currentMessage(initiateMessage, "", "");
 
 	// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
 
-	m_UDPsocket.send_to(
-		boost::asio::buffer(currentMessage.asVector()), m_serverEndPoint);
+	const uint16_t arbitraryLength = 256;
+
+	std::vector<char> payloadToSend(initiateMessage.begin(), initiateMessage.end());
+	std::vector<char> sourceToSend(source.begin(), source.end());
+	std::vector<char> destinationToSend(destination.begin(), destination.end());
+
+	boost::array<boost::asio::const_buffer, 3> buffersToSend = {
+		boost::asio::buffer(payloadToSend),
+		boost::asio::buffer(sourceToSend),
+		boost::asio::buffer(destinationToSend)};
+
+	this->m_UDPsocket.send_to(
+		buffersToSend,
+		m_serverEndPoint);
 };
 
 //-------------------------------------------------------------------------- run
