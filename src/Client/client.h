@@ -4,6 +4,13 @@
 
 class string;
 
+struct DataMessage
+{
+	std::string client_id = "";
+	std::string destination = "";
+	std::string payload = "";
+};
+
 class client
 {
 	enum class protocol
