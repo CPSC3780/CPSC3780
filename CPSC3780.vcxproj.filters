@@ -35,6 +35,9 @@
     <ClCompile Include="src\Client\client.cpp">
       <Filter>Source Files\Client</Filter>
     </ClCompile>
+    <ClCompile Include="src\Common\dataMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Server\server.h">
@@ -43,5 +46,6 @@
     <ClInclude Include="src\Client\client.h">
       <Filter>Source Files\Client</Filter>
     </ClInclude>
+    <ClInclude Include="src\Common\dataMessage.h" />
   </ItemGroup>
 </Project>

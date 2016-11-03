@@ -1,7 +1,6 @@
 // STL
 #include <cstdint>
 #include <iostream>
-#include <vector>
 
 // Boost
 #include <boost/array.hpp>
@@ -100,25 +99,44 @@ void server::relayLoop()
 //------------------------------------------------------------------------------
 void server::relayUDP()
 {
-	if(this->messageQueue.size() > 0)
-	{
-		std::vector<boost::asio::ip::udp::endpoint>::iterator it;
-		std::vector<std::string>::iterator message_it;
-		for(message_it = this->messageQueue.begin(); message_it < this->messageQueue.end(); message_it++)
-		{
-			for(it = this->connections.begin(); it < this->connections.end(); it++)
-			{
-				boost::system::error_code ignored_error;
-				std::string message = *message_it;
-				std::cout << *it << std::endl;
+	boost::system::error_code ignoredError;
 
-				this->m_UDPsocket.send_to(boost::asio::buffer(message),
-					*it, 0, ignored_error);
-				this->connections.erase(std::unique(this->connections.begin(), this->connections.end()), this->connections.end());
+	while(!(this->m_messageQueue.empty()))
+	{
+		const dataMessage& currentMessage(
+			this->m_messageQueue.front());
+
+		if(currentMessage.viewDestinationID() == "broadcast")
+		{
+			// #TODO_AH pair is kinda ugly, maybe make this a class? rename client to something else?
+			for(const std::pair<std::string, boost::asio::ip::udp::endpoint> currentClient : this->m_connectedClients)
+			{
+				if(currentClient.first == currentMessage.viewSourceID())
+				{
+					// Continue so we don't relay the sent message back to the sender
+					continue;
+				}
+
+				// #TODO_MT test code? remove later if yes
+				std::cout << currentMessage.viewPayload() << std::endl;
+
+				// #TODO_AH figure out how to use send_to with a vector instead of a buffer
+				// the documentation for send_to mentions it ~20 lines down
+				this->m_UDPsocket.send_to(
+					boost::asio::buffer(currentMessage.viewPayload()), // should be currentMessage.asVector()
+					currentClient.second, 0, ignoredError);
+
+				// #TODO_MT why are we deleting clients after we send them a message?
+				// i think it only makes sense to remove the sent message, as is done 4 lines down
+				// this->m_connectedClients.erase(std::unique(this->m_connectedClients.begin(), this->m_connectedClients.end()), this->m_connectedClients.end());
 			}
-			this->messageQueue.erase(this->messageQueue.begin()++);
 		}
-		
+		else
+		{
+			// search connectedClients.first for currentMessage.destination
+		}
+
+		this->m_messageQueue.pop();
 	}
 };
 
@@ -135,17 +153,20 @@ void server::relayBluetooth()
 // Implementation notes:
 //  Add new connections to connections list
 //------------------------------------------------------------------------------
-void server::addConnections(boost::asio::ip::udp::endpoint client)
+void server::addConnections(
+	const boost::asio::ip::udp::endpoint& client)
 {
-	this->connections.push_back(client);
+	this->m_connectedClients.push_back(
+		std::make_pair("tempClientID", client)); // #TODO_AH fix me
 };
 
-//--------------------------------------------------------------- addToMessageQueue
+//------------------------------------------------------------ addToMessageQueue
 // Implementation notes:
 //  Add new messages to message queue list
 //------------------------------------------------------------------------------
-void server::addToMessageQueue(std::string message)
+void server::addToMessageQueue(
+	const std::string& message)
 {
-	this->messageQueue.push_back(message);
+	this->m_messageQueue.push(
+		dataMessage(message, "SRC", "DEST")); // #TODO_AH fix me
 };
-
