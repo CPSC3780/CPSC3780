@@ -57,15 +57,50 @@ const std::string& dataMessage::viewDestinationID() const
 	return this->m_destinationID;
 };
 
-//--------------------------------------------------------------------- asVector
+//---------------------------------------------------------------- asConstBuffer
 // Implementation notes:
-//  Returns a a vector containing the 3 strings in order of m_payload, 
-//  m_sourceID, and m_destinationID
+//  Returns all 3 strings in 3 vector<char> arrays as a const buffer
 //------------------------------------------------------------------------------
-std::vector<std::string> dataMessage::asVector() const
+boost::array<boost::asio::const_buffer, 3> dataMessage::asConstBuffer() const
 {
-	return std::vector<std::string>({
-		this->m_payload,
-		this->m_sourceID,
-		this->m_destinationID});
+	std::vector<char> payloadToSend(
+		this->m_payload.begin(),
+		this->m_payload.end());
+
+	std::vector<char> sourceToSend(
+		this->m_sourceID.begin(),
+		this->m_sourceID.end());
+
+	std::vector<char> destinationToSend(
+		this->m_destinationID.begin(),
+		this->m_destinationID.end());
+
+	return boost::array<boost::asio::const_buffer, 3> {
+		boost::asio::buffer(payloadToSend),
+		boost::asio::buffer(sourceToSend),
+		boost::asio::buffer(destinationToSend)};
+};
+
+//-------------------------------------------------------------- asMutableBuffer
+// Implementation notes:
+//  Returns all 3 strings in 3 vector<char> arrays as a mutable buffer
+//------------------------------------------------------------------------------
+boost::array<boost::asio::mutable_buffer, 3> dataMessage::asMutableBuffer() const
+{
+	std::vector<char> payloadToSend(
+		this->m_payload.begin(),
+		this->m_payload.end());
+
+	std::vector<char> sourceToSend(
+		this->m_sourceID.begin(),
+		this->m_sourceID.end());
+
+	std::vector<char> destinationToSend(
+		this->m_destinationID.begin(),
+		this->m_destinationID.end());
+
+	return boost::array<boost::asio::mutable_buffer, 3> {
+		boost::asio::buffer(payloadToSend),
+			boost::asio::buffer(sourceToSend),
+			boost::asio::buffer(destinationToSend)};
 };

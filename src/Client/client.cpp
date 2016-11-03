@@ -105,9 +105,10 @@ void client::inputLoop()
 		if(currentMessage.viewPayload() == "/exit")
 		{
 			this->m_terminate = true;
-			std::string disconnect_message = "Client has disconnected.";
+			std::string disconnect_message = "<clientIDGoesHere> has disconnected."; // #TODO_AH implement as member variable of client
 			dataMessage currentMessage(disconnect_message, "", "");
-			this->sendOverUDP(currentMessage.asVector());
+
+			this->sendOverUDP(currentMessage);
 			break;
 		}
 		else
@@ -118,12 +119,12 @@ void client::inputLoop()
 				case client::protocol::UDP:
 				{
 					// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
-					this->sendOverUDP(currentMessage.asVector());
+					this->sendOverUDP(currentMessage);
 					break;
 				}
 				case client::protocol::Bluetooth:
 				{
-					this->sendOverBluetooth(currentMessage.viewPayload());
+					this->sendOverBluetooth(currentMessage);
 					break;
 				}
 				case client::protocol::Undefined:
@@ -142,13 +143,11 @@ void client::inputLoop()
 //  None
 //------------------------------------------------------------------------------
 void client::sendOverUDP(
-	std::vector<std::string> message)
+	const dataMessage& message)
 {
-
-	// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
-	m_UDPsocket.send_to(
-		boost::asio::buffer(message),
-		m_serverEndPoint);
+	this->m_UDPsocket.send_to(
+		message.asConstBuffer(),
+		this->m_serverEndPoint);
 };
 
 //------------------------------------------------------------ sendOverBluetooth
@@ -156,7 +155,7 @@ void client::sendOverUDP(
 //  None
 //------------------------------------------------------------------------------
 void client::sendOverBluetooth(
-	const std::string& message)
+	const dataMessage& message)
 {
 	// #TODO implement sending over Bluetooth for the client
 };
@@ -183,19 +182,20 @@ void client::receiveOverUDP()
 	try
 	{
 		// Listen for any data the server endpoint sends back
-		boost::array<char, 128> recv_buf; // make this a member variable? how do we determine size?
+		boost::array<boost::asio::mutable_buffer, 3> recv_buf; // #TODO_AH make this a member variable
 
 		size_t incomingMessageLength =
-			m_UDPsocket.receive_from(
-				boost::asio::buffer(recv_buf),
+			this->m_UDPsocket.receive_from(
+				recv_buf,
 				this->m_serverEndPoint);
 
 		if(incomingMessageLength > 0)
 		{
 			// output data
+			/* #TODO_AH implement interpretation of 3 buffers
 			std::cout.write(
 				recv_buf.data(),
-				incomingMessageLength);
+				incomingMessageLength);*/
 		}
 
 		std::cout << std::endl;

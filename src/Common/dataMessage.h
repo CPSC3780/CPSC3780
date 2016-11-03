@@ -1,6 +1,12 @@
+#pragma once
+
 // STL
 #include <string>
 #include <vector>
+
+// Boost
+#include <boost/array.hpp>
+#include <boost/asio.hpp>
 
 class dataMessage
 {
@@ -18,7 +24,8 @@ public:
 	const std::string& viewSourceID() const;
 	const std::string& viewDestinationID() const;
 
-	std::vector<std::string> asVector() const;
+	boost::array<boost::asio::const_buffer, 3> asConstBuffer() const;
+	boost::array<boost::asio::mutable_buffer, 3> asMutableBuffer() const;
 
 private:	
 	// Member Variables

@@ -3,6 +3,9 @@
 #include <boost/thread.hpp>
 #include <vector>
 
+// Project
+#include "../Common/dataMessage.h"
+
 class client
 {
 	enum class protocol
@@ -23,10 +26,10 @@ private:
 	void inputLoop();
 
 	void sendOverUDP(
-		std::vector<std::string> message);
+		const dataMessage& message);
 
 	void sendOverBluetooth(
-		const std::string& message);
+		const dataMessage& message);
 
 	void receiveLoop();
 
