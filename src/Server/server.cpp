@@ -5,6 +5,7 @@
 // Boost
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
+#include <boost/asio.hpp>
 
 // Project
 #include "server.h"
@@ -54,15 +55,23 @@ void server::listenLoop()
 {
 	while(!this->m_terminate)
 	{
-		const uint8_t arbitraryLength = 64;
+		const uint16_t arbitraryLength = 256;
 
 		// Wait for connection
-		boost::array<char, arbitraryLength> recv_buf;
-		recv_buf.fill(' ');
+		std::vector<char> receivedPayload(arbitraryLength);
+		std::vector<char> receivedSource(arbitraryLength);
+		std::vector<char> receivedDestination(arbitraryLength);
+
 		boost::system::error_code error;
 
+		boost::array<boost::asio::mutable_buffer, 3> buffers = {
+			boost::asio::buffer(receivedPayload),
+			boost::asio::buffer(receivedSource),
+			boost::asio::buffer(receivedDestination)};
+
 		// remote_endpoint object is populated by receive_from()
-		m_UDPsocket.receive_from(boost::asio::buffer(recv_buf),
+		m_UDPsocket.receive_from(
+			buffers,
 			this->m_remoteEndPoint, 0, error);
 
 		if(error && error != boost::asio::error::message_size)
@@ -72,10 +81,28 @@ void server::listenLoop()
 
 		this->addConnections(this->m_remoteEndPoint);
 
+		const std::string payloadAsString(
+			receivedPayload.begin(), 
+			receivedPayload.end());
+
+		const std::string sourceAsString(
+			receivedSource.begin(),
+			receivedSource.end());
+
+		const std::string destinationAsString(
+			receivedDestination.begin(),
+			receivedDestination.end());
+
+		const dataMessage message(
+			payloadAsString, 
+			sourceAsString, 
+			destinationAsString);
+
 		std::cout << "Received message from: ";
 		std::cout << this->m_remoteEndPoint << std::endl;
-		std::cout << recv_buf.data() << std::endl;
-		this->addToMessageQueue(recv_buf.data());
+		std::cout << message.viewPayload() << std::endl;
+
+		this->addToMessageQueue(message);
 	}
 }
 
@@ -152,6 +179,7 @@ void server::relayBluetooth()
 void server::addConnections(
 	const boost::asio::ip::udp::endpoint& client)
 {
+	// #TODO_AH make sure this only adds the connection if the client is not already connected
 	this->m_connectedClients.push_back(
 		std::make_pair("tempClientID", client)); // #TODO_AH fix me
 };
@@ -161,8 +189,8 @@ void server::addConnections(
 //  Add new messages to message queue list
 //------------------------------------------------------------------------------
 void server::addToMessageQueue(
-	const std::string& message)
+	const dataMessage& message)
 {
 	this->m_messageQueue.push(
-		dataMessage(message, "SRC", "DEST")); // #TODO_AH fix me
+		message);
 };

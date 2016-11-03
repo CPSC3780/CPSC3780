@@ -34,7 +34,7 @@ private:
 		const boost::asio::ip::udp::endpoint& client);
 
 	void addToMessageQueue(
-		const std::string& message);
+		const dataMessage& message);
 
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
