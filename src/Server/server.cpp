@@ -1,6 +1,7 @@
 // STL
 #include <cstdint>
 #include <iostream>
+#include <vector>
 
 // Boost
 #include <boost/array.hpp>
@@ -70,23 +71,12 @@ void server::listenLoop()
 			throw boost::system::system_error(error);
 		}
 
-		std::cout << "Received message: ";
+		this->addConnections(this->m_remoteEndPoint);
 
-		// output data
-		std::cout.write(
-			recv_buf.data(),
-			arbitraryLength);
+		std::cout << "Received message from: ";
+		this->addToMessageQueue(recv_buf.data());
 
-		std::cout << std::endl;
-
-		// send a warm welcome back :)
-		std::string message =
-			"\nHello! how are you?";
-
-		boost::system::error_code ignored_error;
-
-		this->m_UDPsocket.send_to(boost::asio::buffer(message),
-			this->m_remoteEndPoint, 0, ignored_error);
+		// this->addToMessageQueue()
 	}
 }
 
@@ -110,7 +100,26 @@ void server::relayLoop()
 //------------------------------------------------------------------------------
 void server::relayUDP()
 {
-	// #TODO implement UDP relay
+	if(this->messageQueue.size() > 0)
+	{
+		std::vector<boost::asio::ip::udp::endpoint>::iterator it;
+		std::vector<std::string>::iterator message_it;
+		for(message_it = this->messageQueue.begin(); message_it < this->messageQueue.end(); message_it++)
+		{
+			for(it = this->connections.begin(); it < this->connections.end(); it++)
+			{
+				boost::system::error_code ignored_error;
+				std::string message = *message_it;
+				std::cout << *it << std::endl;
+
+				this->m_UDPsocket.send_to(boost::asio::buffer(message),
+					*it, 0, ignored_error);
+				this->connections.erase(std::unique(this->connections.begin(), this->connections.end()), this->connections.end());
+			}
+			this->messageQueue.erase(this->messageQueue.begin()++);
+		}
+		
+	}
 };
 
 //--------------------------------------------------------------- relayBluetooth
@@ -121,3 +130,22 @@ void server::relayBluetooth()
 {
 	// #TODO implement Bluetooth relay
 };
+
+//--------------------------------------------------------------- addConnections
+// Implementation notes:
+//  Add new connections to connections list
+//------------------------------------------------------------------------------
+void server::addConnections(boost::asio::ip::udp::endpoint client)
+{
+	this->connections.push_back(client);
+};
+
+//--------------------------------------------------------------- addToMessageQueue
+// Implementation notes:
+//  Add new messages to message queue list
+//------------------------------------------------------------------------------
+void server::addToMessageQueue(std::string message)
+{
+	this->messageQueue.push_back(message);
+};
+
