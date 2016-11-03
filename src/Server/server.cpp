@@ -73,9 +73,9 @@ void server::listenLoop()
 		this->addConnections(this->m_remoteEndPoint);
 
 		std::cout << "Received message from: ";
+		std::cout << this->m_remoteEndPoint << std::endl;
+		std::cout << recv_buf.data() << std::endl;
 		this->addToMessageQueue(recv_buf.data());
-
-		// this->addToMessageQueue()
 	}
 }
 
@@ -125,10 +125,6 @@ void server::relayUDP()
 				this->m_UDPsocket.send_to(
 					boost::asio::buffer(currentMessage.viewPayload()), // should be currentMessage.asVector()
 					currentClient.second, 0, ignoredError);
-
-				// #TODO_MT why are we deleting clients after we send them a message?
-				// i think it only makes sense to remove the sent message, as is done 4 lines down
-				// this->m_connectedClients.erase(std::unique(this->m_connectedClients.begin(), this->m_connectedClients.end()), this->m_connectedClients.end());
 			}
 		}
 		else

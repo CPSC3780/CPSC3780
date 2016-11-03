@@ -33,6 +33,8 @@ private:
 
 	void receiveOverBluetooth();
 
+	void serializeUDPMessage(std::vector<std::string>);
+
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::asio::ip::udp::resolver m_resolver;

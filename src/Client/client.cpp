@@ -4,9 +4,11 @@
 
 // Boost
 #include <boost/array.hpp>
+#include <boost/serialization/vector.hpp>
 
 // Project
 #include "client.h"
+#include "../Common/dataMessage.h"
 
 using boost::asio::ip::udp;
 
@@ -43,9 +45,14 @@ client::client(
 		udp::v4());
 
 	// necessary? getting a crash later when trying to receive if removed
-	std::string initiateMessage = "Client has connected.\n";
+	std::string initiateMessage = "Client at has connected.\n";
+
+	dataMessage currentMessage(initiateMessage, "", "");
+
+	// TODO_MT: we need to serialize the vector data so we can send everything in one go
+
 	m_UDPsocket.send_to(
-		boost::asio::buffer(initiateMessage), m_serverEndPoint);
+		boost::asio::buffer(currentMessage.viewPayload()), m_serverEndPoint);
 };
 
 //-------------------------------------------------------------------------- run
@@ -78,8 +85,9 @@ void client::inputLoop()
 		// communication with the server
 		std::cout << "Enter a message: " << std::endl;
 		std::getline(std::cin, message);
+		dataMessage currentMessage(message, "", "");
 
-		if(message == "/exit")
+		if(currentMessage.viewPayload() == "/exit")
 		{
 			this->m_terminate = true;
 			std::string disconnect_message = "Client has disconnected.";
@@ -93,12 +101,12 @@ void client::inputLoop()
 			{
 				case client::protocol::UDP:
 				{
-					this->sendOverUDP(message);
+					this->sendOverUDP(currentMessage.viewPayload());
 					break;
 				}
 				case client::protocol::Bluetooth:
 				{
-					this->sendOverBluetooth(message);
+					this->sendOverBluetooth(currentMessage.viewPayload());
 					break;
 				}
 				case client::protocol::Undefined:
@@ -188,6 +196,15 @@ void client::receiveOverUDP()
 //  None
 //------------------------------------------------------------------------------
 void client::receiveOverBluetooth()
+{
+	// #TODO implement receiving over Bluetooth for the client
+};
+
+//--------------------------------------------------------- serializeUDPMessage
+// Implementation notes:
+//  TODO
+//------------------------------------------------------------------------------
+void client::serializeUDPMessage(std::vector<std::string>)
 {
 	// #TODO implement receiving over Bluetooth for the client
 };
