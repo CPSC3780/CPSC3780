@@ -23,11 +23,31 @@ dataMessage::dataMessage(
 //  Used to create a data message object from a received vector
 //------------------------------------------------------------------------------
 dataMessage::dataMessage(
-	const std::vector<std::string>& receivedVector)
+	boost::array<boost::asio::mutable_buffer, 3>& receivedBuffers)
 {
-	this->m_payload = receivedVector[0];
-	this->m_sourceID = receivedVector[1];
-	this->m_destinationID = receivedVector[2];
+	// #TODO_AH this code does not like vectors, switch to char arrays?
+	/*
+	std::vector<char> payloadVector = 
+		boost::asio::buffer_cast<std::vector<char>>(receivedBuffers[0]);
+
+	this->m_payload = std::string(
+		payloadVector.begin(), 
+		payloadVector.end());
+
+	std::vector<char> sourceIDVector =
+		boost::asio::buffer_cast<std::vector<char>>(receivedBuffers[1]);
+
+	this->m_sourceID = std::string(
+		sourceIDVector.begin(),
+		sourceIDVector.end());
+
+	std::vector<char> destinationIDVector =
+		boost::asio::buffer_cast<std::vector<char>>(receivedBuffers[2]);
+
+	this->m_destinationID = std::string(
+		destinationIDVector.begin(),
+		destinationIDVector.end());
+	*/
 };
 
 //------------------------------------------------------------------ viewPayload
