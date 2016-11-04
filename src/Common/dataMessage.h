@@ -18,7 +18,7 @@ public:
 		const std::string& inDestinationID);
 
 	dataMessage(
-		const std::vector<std::string>& receivedVector);
+		boost::array<boost::asio::mutable_buffer, 3>& receivedBuffers);
 
 	const std::string& viewPayload() const;
 	const std::string& viewSourceID() const;
