@@ -18,7 +18,9 @@ class client
 public:
 	// #TODO_AH header comment blocks
 	client(
-		boost::asio::io_service &ioService);
+		const std::string username,
+		boost::asio::io_service &ioService
+		);
 
 	void run();
 
@@ -46,4 +48,5 @@ private:
 	boost::thread_group m_threads;
 	client::protocol m_activeProtocol;
 	bool m_terminate;
+	std::string username;
 };

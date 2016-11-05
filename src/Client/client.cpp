@@ -22,10 +22,12 @@ const uint16_t updateInterval = 100;
 //  None
 //------------------------------------------------------------------------------
 client::client(
+	const std::string username,
 	boost::asio::io_service& ioService) :
 	m_resolver(ioService),
 	m_UDPsocket(ioService)
 {
+	this->username = username;
 	this->m_terminate = false;
 
 	this->m_activeProtocol =
@@ -45,28 +47,13 @@ client::client(
 	this->m_UDPsocket.open(
 		udp::v4());
 
-	// necessary? getting a crash later when trying to receive if removed
-	std::string initiateMessage = "Client at has connected.\n";
+	std::string initiateMessage = "Client has connected.\n";
 	std::string source = "test";
 	std::string destination = "broadcast";
-	// dataMessage currentMessage(initiateMessage, "", "");
 
-	// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
+	dataMessage connectionMessage(initiateMessage, source, destination);
 
-	const uint16_t arbitraryLength = 256;
-
-	std::vector<char> payloadToSend(initiateMessage.begin(), initiateMessage.end());
-	std::vector<char> sourceToSend(source.begin(), source.end());
-	std::vector<char> destinationToSend(destination.begin(), destination.end());
-
-	boost::array<boost::asio::const_buffer, 3> buffersToSend = {
-		boost::asio::buffer(payloadToSend),
-		boost::asio::buffer(sourceToSend),
-		boost::asio::buffer(destinationToSend)};
-
-	this->m_UDPsocket.send_to(
-		buffersToSend,
-		m_serverEndPoint);
+	this->sendOverUDP(connectionMessage);
 };
 
 //-------------------------------------------------------------------------- run
@@ -100,13 +87,13 @@ void client::inputLoop()
 		std::cout << "Enter a message: " << std::endl;
 		std::getline(std::cin, message);
 		// TODO_MT: we need to send vector data through the buffer so we can send everything in one go
-		dataMessage currentMessage(message, "", "");
+		dataMessage currentMessage(message, "test", "broadcast");
 
 		if(currentMessage.viewPayload() == "/exit")
 		{
 			this->m_terminate = true;
 			std::string disconnect_message = "<clientIDGoesHere> has disconnected."; // #TODO_AH implement as member variable of client
-			dataMessage currentMessage(disconnect_message, "", "");
+			dataMessage currentMessage(disconnect_message, "", "broadcast");
 
 			this->sendOverUDP(currentMessage);
 			break;
@@ -118,7 +105,6 @@ void client::inputLoop()
 			{
 				case client::protocol::UDP:
 				{
-					// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
 					this->sendOverUDP(currentMessage);
 					break;
 				}

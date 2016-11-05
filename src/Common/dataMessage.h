@@ -18,7 +18,7 @@ public:
 		const std::string& inDestinationID);
 
 	dataMessage(
-		boost::array<boost::asio::mutable_buffer, 3>& receivedBuffers);
+		boost::asio::mutable_buffer& receivedBuffer);
 
 	const std::string& viewPayload() const;
 	const std::string& viewSourceID() const;
@@ -26,6 +26,9 @@ public:
 
 	boost::array<boost::asio::const_buffer, 3> asConstBuffer() const;
 	boost::array<boost::asio::mutable_buffer, 3> asMutableBuffer() const;
+
+	std::string asString() const;
+	void assign(std::string);
 
 private:	
 	// Member Variables

@@ -9,13 +9,13 @@
 //  Used to create a data message object to send
 //------------------------------------------------------------------------------
 dataMessage::dataMessage(
-	const std::string& inPayload, 
+	const std::string& inPayload,
 	const std::string& inSourceID,
 	const std::string& inDestinationID = "broadcast")
 {
-	this->m_payload = inPayload;
-	this->m_sourceID = inSourceID;
-	this->m_destinationID = inDestinationID;
+	this->m_payload = inPayload + "/?";
+	this->m_sourceID = inSourceID + "/?";
+	this->m_destinationID = inDestinationID + "/?";
 };
 
 //------------------------------------------------------------------ constructor
@@ -23,31 +23,15 @@ dataMessage::dataMessage(
 //  Used to create a data message object from a received vector
 //------------------------------------------------------------------------------
 dataMessage::dataMessage(
-	boost::array<boost::asio::mutable_buffer, 3>& receivedBuffers)
+	boost::asio::mutable_buffer& receivedBuffer)
 {
-	// #TODO_AH this code does not like vectors, switch to char arrays?
-	/*
-	std::vector<char> payloadVector = 
-		boost::asio::buffer_cast<std::vector<char>>(receivedBuffers[0]);
 
-	this->m_payload = std::string(
-		payloadVector.begin(), 
-		payloadVector.end());
+//	std::vector<char> sourceidvector =
+//		boost::asio::buffer_cast<std::vector<char>>(receivedBuffer);
 
-	std::vector<char> sourceIDVector =
-		boost::asio::buffer_cast<std::vector<char>>(receivedBuffers[1]);
-
-	this->m_sourceID = std::string(
-		sourceIDVector.begin(),
-		sourceIDVector.end());
-
-	std::vector<char> destinationIDVector =
-		boost::asio::buffer_cast<std::vector<char>>(receivedBuffers[2]);
-
-	this->m_destinationID = std::string(
-		destinationIDVector.begin(),
-		destinationIDVector.end());
-	*/
+//	m_payload = std::string(
+//		sourceidvector.begin(),
+//		sourceidvector.end());
 };
 
 //------------------------------------------------------------------ viewPayload
@@ -120,7 +104,35 @@ boost::array<boost::asio::mutable_buffer, 3> dataMessage::asMutableBuffer() cons
 		this->m_destinationID.end());
 
 	return boost::array<boost::asio::mutable_buffer, 3> {
-		boost::asio::buffer(payloadToSend),
-			boost::asio::buffer(sourceToSend),
-			boost::asio::buffer(destinationToSend)};
+		boost::asio::buffer(payloadToSend)
+	};
+};
+
+//-------------------------------------------------------------- asString
+// Implementation notes:
+//  Returns data message as a string, delimited by an int followed by a comma
+//------------------------------------------------------------------------------
+std::string dataMessage::asString() const
+{
+	std::string stringifiedMessage =
+		m_payload + "/?" + m_sourceID + "/?" + m_destinationID + "/?";
+
+	return stringifiedMessage;
+};
+
+//-------------------------------------------------------------- assignValues
+// Implementation notes:
+//  Takes a stringified message and assigns each part of the message to respective 
+//  member variables
+//------------------------------------------------------------------------------
+void dataMessage::assign(std::string s)
+{
+	std::string delimiter = "/?";
+
+	this->m_payload = s.substr(0, s.find(delimiter));
+	s.erase(0, s.find(delimiter) + delimiter.length());
+	this->m_sourceID = s.substr(0, s.find(delimiter));
+	s.erase(0, s.find(delimiter) + delimiter.length());
+	this->m_destinationID = s.substr(0, s.find(delimiter));
+	s.erase(0, s.find(delimiter) + delimiter.length());
 };

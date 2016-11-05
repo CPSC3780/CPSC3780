@@ -59,15 +59,11 @@ void server::listenLoop()
 
 		// Wait for connection
 		std::vector<char> receivedPayload(arbitraryLength);
-		std::vector<char> receivedSource(arbitraryLength);
-		std::vector<char> receivedDestination(arbitraryLength);
 
 		boost::system::error_code error;
 
-		boost::array<boost::asio::mutable_buffer, 3> buffers = {
-			boost::asio::buffer(receivedPayload),
-			boost::asio::buffer(receivedSource),
-			boost::asio::buffer(receivedDestination)};
+		std::vector<boost::asio::mutable_buffer> buffers;
+		buffers.push_back(boost::asio::buffer(receivedPayload));
 
 		// remote_endpoint object is populated by receive_from()
 		m_UDPsocket.receive_from(
@@ -80,28 +76,17 @@ void server::listenLoop()
 		}
 
 		this->addConnections(this->m_remoteEndPoint);
-
 		const std::string payloadAsString(
-			receivedPayload.begin(), 
+			receivedPayload.begin(),
 			receivedPayload.end());
 
-		const std::string sourceAsString(
-			receivedSource.begin(),
-			receivedSource.end());
-
-		const std::string destinationAsString(
-			receivedDestination.begin(),
-			receivedDestination.end());
-
-		const dataMessage message(
-			payloadAsString, 
-			sourceAsString, 
-			destinationAsString);
 
 		std::cout << "Received message from: ";
 		std::cout << this->m_remoteEndPoint << std::endl;
-		std::cout << message.viewPayload() << std::endl;
+		std::cout << payloadAsString << std::endl;
 
+		dataMessage message("test", "test", "test");
+		message.assign(payloadAsString);
 		this->addToMessageQueue(message);
 	}
 }
