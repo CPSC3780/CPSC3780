@@ -91,11 +91,27 @@ void client::inputLoop()
 		// communication with the server
 		std::cout << "Enter a message: " << std::endl;
 		std::getline(std::cin, chatInput);
+		std::string destination = "broadcast";
+
+		std::stringstream ss;
+		ss << chatInput;
+
+		std::string temp("");
+		ss >> temp;
+
+		if(temp == "/message")
+		{
+			std::string destination("");
+			std::string actualMessage("");
+			ss >> destination >> actualMessage;
+			
+			chatInput = actualMessage;
+		}
 
 		dataMessage currentMessage(
 			chatInput,
 			this->m_username,
-			"broadcast",
+			destination,
 			"chat");
 
 		if(currentMessage.viewPayload() == "/exit")
