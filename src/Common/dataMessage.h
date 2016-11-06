@@ -26,8 +26,8 @@ public:
 	const std::string& viewDestinationID() const;
 	const std::string& viewMessageType() const;
 
-	boost::array<boost::asio::const_buffer, 3> asConstBuffer() const;
-	boost::array<boost::asio::mutable_buffer, 3> asMutableBuffer() const;
+	boost::array<boost::asio::const_buffer, 4> asConstBuffer() const;
+	boost::array<boost::asio::mutable_buffer, 4> asMutableBuffer() const;
 
 	std::string asString() const;
 	void assign(std::string);

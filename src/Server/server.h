@@ -31,6 +31,7 @@ private:
 	void relayBluetooth();
 
 	void addConnections(
+		std::string clientID,
 		const boost::asio::ip::udp::endpoint& client);
 
 	void addToMessageQueue(

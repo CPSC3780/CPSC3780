@@ -82,12 +82,12 @@ void server::listenLoop()
 		dataMessage message("test", "test", "test", "test");
 		message.assign(payloadAsString);
 
-		std::cout << "Received message from ";
+		std::cout << "Received " << message.viewMessageType() << " message from ";
 		std::cout << message.viewSourceID() << std::endl;
 
 		if(message.viewMessageType() == "connection")
 		{
-			this->addConnections(this->m_remoteEndPoint);
+			this->addConnections(message.viewSourceID(), this->m_remoteEndPoint);
 		}
 		this->addToMessageQueue(message);
 	}
@@ -125,9 +125,6 @@ void server::relayUDP()
 			// #TODO_AH pair is kinda ugly, maybe make this a class? rename client to something else?
 			for(const std::pair<std::string, boost::asio::ip::udp::endpoint> currentClient : this->m_connectedClients)
 			{
-				std::cout << "Is this executing?" << std::endl;
-				std::cout << currentClient.first << std::endl;
-				std::cout << currentMessage.viewSourceID() << std::endl;
 				if(currentClient.first == currentMessage.viewSourceID())
 				{
 					// Continue so we don't relay the sent message back to the sender
@@ -171,11 +168,11 @@ void server::relayBluetooth()
 //  Add new connections to connections list
 //------------------------------------------------------------------------------
 void server::addConnections(
+	std::string clientID,
 	const boost::asio::ip::udp::endpoint& client)
 {
-	// #TODO_AH make sure this only adds the connection if the client is not already connected
 	this->m_connectedClients.push_back(
-		std::make_pair("tempClientID", client)); // #TODO_AH fix me
+		std::make_pair(clientID, client)); 
 };
 
 //------------------------------------------------------------ addToMessageQueue

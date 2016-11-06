@@ -76,7 +76,7 @@ const std::string& dataMessage::viewMessageType() const
 // Implementation notes:
 //  Returns all 3 strings in 3 vector<char> arrays as a const buffer
 //------------------------------------------------------------------------------
-boost::array<boost::asio::const_buffer, 3> dataMessage::asConstBuffer() const
+boost::array<boost::asio::const_buffer, 4> dataMessage::asConstBuffer() const
 {
 	std::vector<char> payloadToSend(
 		this->m_payload.begin(),
@@ -90,17 +90,22 @@ boost::array<boost::asio::const_buffer, 3> dataMessage::asConstBuffer() const
 		this->m_destinationID.begin(),
 		this->m_destinationID.end());
 
-	return boost::array<boost::asio::const_buffer, 3> {
+	std::vector<char> messageTypeToSend(
+		this->m_type.begin(),
+		this->m_type.end());
+
+	return boost::array<boost::asio::const_buffer, 4> {
 		boost::asio::buffer(payloadToSend),
 		boost::asio::buffer(sourceToSend),
-		boost::asio::buffer(destinationToSend)};
+		boost::asio::buffer(destinationToSend),
+		boost::asio::buffer(messageTypeToSend)};
 };
 
 //-------------------------------------------------------------- asMutableBuffer
 // Implementation notes:
 //  Returns all 3 strings in 3 vector<char> arrays as a mutable buffer
 //------------------------------------------------------------------------------
-boost::array<boost::asio::mutable_buffer, 3> dataMessage::asMutableBuffer() const
+boost::array<boost::asio::mutable_buffer, 4> dataMessage::asMutableBuffer() const
 {
 	std::vector<char> payloadToSend(
 		this->m_payload.begin(),
@@ -114,7 +119,11 @@ boost::array<boost::asio::mutable_buffer, 3> dataMessage::asMutableBuffer() cons
 		this->m_destinationID.begin(),
 		this->m_destinationID.end());
 
-	return boost::array<boost::asio::mutable_buffer, 3> {
+	std::vector<char> messageTypeToSend(
+		this->m_type.begin(),
+		this->m_type.end());
+
+	return boost::array<boost::asio::mutable_buffer, 4> {
 		boost::asio::buffer(payloadToSend)
 	};
 };
