@@ -3,6 +3,9 @@
 #include <boost/thread.hpp>
 #include <vector>
 
+// Project
+#include "../Common/dataMessage.h"
+
 class client
 {
 	enum class protocol
@@ -15,7 +18,9 @@ class client
 public:
 	// #TODO_AH header comment blocks
 	client(
-		boost::asio::io_service &ioService);
+		const std::string username,
+		boost::asio::io_service &ioService
+		);
 
 	void run();
 
@@ -23,10 +28,10 @@ private:
 	void inputLoop();
 
 	void sendOverUDP(
-		std::vector<std::string> message);
+		const dataMessage& message);
 
 	void sendOverBluetooth(
-		const std::string& message);
+		const dataMessage& message);
 
 	void receiveLoop();
 
@@ -43,4 +48,5 @@ private:
 	boost::thread_group m_threads;
 	client::protocol m_activeProtocol;
 	bool m_terminate;
+	std::string username;
 };

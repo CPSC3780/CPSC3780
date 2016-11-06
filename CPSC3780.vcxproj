@@ -291,6 +291,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Client|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Client|x64'">false</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="src\Common\constants.h" />
     <ClInclude Include="src\Common\dataMessage.h" />
     <ClInclude Include="src\Server\server.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Client|Win32'">true</ExcludedFromBuild>
