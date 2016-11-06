@@ -91,7 +91,11 @@ void client::inputLoop()
 		// communication with the server
 		std::cout << "Enter a message: " << std::endl;
 		std::getline(std::cin, chatInput);
+
+		// By default, destination and message type are "broadcast"
+		// and "chat", respectively
 		std::string destination = "broadcast";
+		std::string messageType = "chat";
 
 		std::stringstream ss;
 		ss << chatInput;
@@ -105,17 +109,19 @@ void client::inputLoop()
 			ss >> destination >> actualMessage;
 			
 			chatInput = actualMessage;
+			messageType = "private";
 		}
 
 		dataMessage currentMessage(
 			chatInput,
 			this->m_username,
 			destination,
-			"chat");
+			messageType);
 
 		if(currentMessage.viewPayload() == "/exit")
 		{
 			this->m_terminate = true;
+			messageType = "disconnect";
 
 			std::string disconnectMessage =
 				this->m_username + " has disconnected.";
@@ -123,8 +129,8 @@ void client::inputLoop()
 			dataMessage currentMessage(
 				disconnectMessage,
 				this->m_username,
-				"broadcast",
-				"disconnect");
+				destination,
+				messageType);
 
 			this->sendOverUDP(currentMessage);
 
