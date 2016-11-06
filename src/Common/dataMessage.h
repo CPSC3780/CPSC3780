@@ -19,23 +19,19 @@ public:
 		const std::string& inType);
 
 	dataMessage(
-		boost::asio::mutable_buffer& receivedBuffer);
+		const std::vector<char>& inCharVector);
 
 	const std::string& viewPayload() const;
 	const std::string& viewSourceID() const;
 	const std::string& viewDestinationID() const;
 	const std::string& viewMessageType() const;
 
-	boost::array<boost::asio::const_buffer, 4> asConstBuffer() const;
-	boost::array<boost::asio::mutable_buffer, 4> asMutableBuffer() const;
-
-	std::string asString() const;
-	void assign(std::string);
+	std::vector<char> asCharVector() const;
 
 private:	
 	// Member Variables
 	std::string m_payload;
 	std::string m_sourceID;
 	std::string m_destinationID;
-	std::string m_type;
+	std::string m_messageType;
 };

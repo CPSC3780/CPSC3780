@@ -62,12 +62,9 @@ void server::listenLoop()
 
 		boost::system::error_code error;
 
-		std::vector<boost::asio::mutable_buffer> buffers;
-		buffers.push_back(boost::asio::buffer(receivedPayload));
-
 		// remote_endpoint object is populated by receive_from()
 		m_UDPsocket.receive_from(
-			buffers,
+			boost::asio::buffer(receivedPayload),
 			this->m_remoteEndPoint, 0, error);
 
 		if(error && error != boost::asio::error::message_size)
@@ -75,15 +72,12 @@ void server::listenLoop()
 			throw boost::system::system_error(error);
 		}
 
-		const std::string payloadAsString(
-			receivedPayload.begin(),
-			receivedPayload.end());
-
-		dataMessage message("test", "test", "test", "test");
-		message.assign(payloadAsString);
+		dataMessage message(
+			receivedPayload);
 
 		std::cout << "Received " << message.viewMessageType() << " message from ";
 		std::cout << message.viewSourceID() << std::endl;
+		std::cout << "Message: " << message.viewPayload() << std::endl; // #TODO_AH test code
 
 		if(message.viewMessageType() == "connection")
 		{
@@ -131,17 +125,15 @@ void server::relayUDP()
 					continue;
 				}
 
+				// #TODO_MT this seems a bit odd
 				dataMessage messageToSend(
 					currentMessage.viewPayload(),
 					currentMessage.viewSourceID(),
 					currentMessage.viewDestinationID(),
-					"ACK"
-					);
+					"ACK");
 
-				// #TODO_AH figure out how to use send_to with a vector instead of a buffer
-				// the documentation for send_to mentions it ~20 lines down
 				this->m_UDPsocket.send_to(
-					messageToSend.asConstBuffer(),
+					boost::asio::buffer(messageToSend.asCharVector()),
 					currentClient.second, 0, ignoredError);
 			}
 		}

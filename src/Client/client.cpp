@@ -132,7 +132,7 @@ void client::sendOverUDP(
 	const dataMessage& message)
 {
 	this->m_UDPsocket.send_to(
-		message.asConstBuffer(),
+		boost::asio::buffer(message.asCharVector()),
 		this->m_serverEndPoint);
 };
 
@@ -169,22 +169,17 @@ void client::receiveOverUDP()
 	{  
 		const uint16_t arbitraryLength = 256;
 		// Listen for any data the server endpoint sends back
-		std::vector<char> receivedPayload(arbitraryLength);
 
-		std::vector<boost::asio::mutable_buffer> recv_buf;
-		recv_buf.push_back(boost::asio::buffer(receivedPayload));
+		std::vector<char> receivedMessage(arbitraryLength);
 
 		size_t incomingMessageLength =
 			this->m_UDPsocket.receive_from(
-				recv_buf,
+				boost::asio::buffer(receivedMessage),
 				this->m_serverEndPoint);
 
-		const std::string payloadAsString(
-			receivedPayload.begin(),
-			receivedPayload.end());
-		dataMessage message("test", "test", "test", "test");
-		message.assign(payloadAsString);
-
+		dataMessage message(
+			receivedMessage);
+		
 		if(incomingMessageLength > 0)
 		{
 			// output data

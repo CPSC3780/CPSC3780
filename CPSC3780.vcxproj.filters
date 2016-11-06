@@ -52,5 +52,8 @@
     <ClInclude Include="src\Common\dataMessage.h">
       <Filter>Source Files\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\Common\constants.h">
+      <Filter>Source Files\Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
