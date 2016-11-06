@@ -63,7 +63,7 @@ void server::listenLoop()
 		boost::system::error_code error;
 
 		// remote_endpoint object is populated by receive_from()
-		m_UDPsocket.receive_from(
+		this->m_UDPsocket.receive_from(
 			boost::asio::buffer(receivedPayload),
 			this->m_remoteEndPoint, 0, error);
 
@@ -75,17 +75,35 @@ void server::listenLoop()
 		dataMessage message(
 			receivedPayload);
 
-		std::cout << "Received " << message.viewMessageType() << " message from ";
-		std::cout << message.viewSourceID() << std::endl;
-		std::cout << "Message: " << message.viewPayload() << std::endl; // #TODO_AH test code
+		std::cout << "Received " << message.viewMessageType();
+		std::cout << " message from " << message.viewSourceID() << std::endl;
+
+		if(message.viewMessageType() == "disconnect")
+		{
+			this->removeConnection(
+				message.viewSourceID(),
+				this->m_remoteEndPoint);
+		}
 
 		if(message.viewMessageType() == "connection")
 		{
-			this->addConnections(message.viewSourceID(), this->m_remoteEndPoint);
+			this->addConnection(
+				message.viewSourceID(),
+				this->m_remoteEndPoint);
 		}
-		this->addToMessageQueue(message);
+
+		if((message.viewMessageType() != "connection") 
+			&& (message.viewMessageType() != "disconnect"))
+		{
+			// #TODO decide if test code or if we should keep
+			std::cout << "Message: " << message.viewPayload() << std::endl;
+			std::cout << "Target: " << message.viewDestinationID() << std::endl;
+		}
+
+		this->addToMessageQueue(
+			message);
 	}
-}
+};
 
 //-------------------------------------------------------------------- relayLoop
 // Implementation notes:
@@ -125,15 +143,8 @@ void server::relayUDP()
 					continue;
 				}
 
-				// #TODO_MT this seems a bit odd
-				dataMessage messageToSend(
-					currentMessage.viewPayload(),
-					currentMessage.viewSourceID(),
-					currentMessage.viewDestinationID(),
-					"ACK");
-
 				this->m_UDPsocket.send_to(
-					boost::asio::buffer(messageToSend.asCharVector()),
+					boost::asio::buffer(currentMessage.asCharVector()),
 					currentClient.second, 0, ignoredError);
 			}
 		}
@@ -155,21 +166,32 @@ void server::relayBluetooth()
 	// #TODO implement Bluetooth relay
 };
 
-//--------------------------------------------------------------- addConnections
+//---------------------------------------------------------------- addConnection
 // Implementation notes:
-//  Add new connections to connections list
+//  Add a new connection to the connections list
 //------------------------------------------------------------------------------
-void server::addConnections(
-	std::string clientID,
+void server::addConnection(
+	const std::string& clientID,
 	const boost::asio::ip::udp::endpoint& client)
 {
 	this->m_connectedClients.push_back(
-		std::make_pair(clientID, client)); 
+		std::make_pair(clientID, client));
+};
+
+//------------------------------------------------------------- removeConnection
+// Implementation notes:
+//  Remove the matching connection from the connections list
+//------------------------------------------------------------------------------
+void server::removeConnection(
+	const std::string& clientID,
+	const boost::asio::ip::udp::endpoint& client)
+{
+	// #TODO_AH implement, make sure it sends a disconnect message to all
 };
 
 //------------------------------------------------------------ addToMessageQueue
 // Implementation notes:
-//  Add new messages to message queue list
+//  Add a new message to the message queue
 //------------------------------------------------------------------------------
 void server::addToMessageQueue(
 	const dataMessage& message)
