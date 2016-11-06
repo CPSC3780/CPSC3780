@@ -128,15 +128,16 @@ void server::relayUDP()
 					continue;
 				}
 
-				// #TODO_MT test code? remove later if yes
-				std::cout << currentMessage.viewPayload() << std::endl;
-				std::cout << currentMessage.viewSourceID() << std::endl;
-				std::cout << currentMessage.viewDestinationID() << std::endl;
+				dataMessage messageToSend(
+					currentMessage.viewPayload(),
+					currentMessage.viewSourceID(),
+					currentMessage.viewDestinationID()
+					);
 
 				// #TODO_AH figure out how to use send_to with a vector instead of a buffer
 				// the documentation for send_to mentions it ~20 lines down
 				this->m_UDPsocket.send_to(
-					currentMessage.asConstBuffer(),
+					messageToSend.asConstBuffer(),
 					currentClient.second, 0, ignoredError);
 			}
 		}
