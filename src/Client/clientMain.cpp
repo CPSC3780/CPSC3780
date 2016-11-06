@@ -1,6 +1,6 @@
 // STL
 #include <iostream>
-
+#include <string.h>
 // Boost
 #include <boost/asio.hpp>
 
@@ -11,9 +11,12 @@ int main()
 {
 	try
 	{
+		std::string username("");
+		std::cout << "Enter your username: " << std::endl;
+		std::getline(std::cin, username);
 		boost::asio::io_service ioService;
 
-		client clientInstance(ioService);
+		client clientInstance(username, ioService);
 
 		clientInstance.run();
 	}

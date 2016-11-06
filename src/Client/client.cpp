@@ -22,10 +22,12 @@ const uint16_t updateInterval = 100;
 //  None
 //------------------------------------------------------------------------------
 client::client(
+	const std::string username,
 	boost::asio::io_service& ioService) :
 	m_resolver(ioService),
 	m_UDPsocket(ioService)
 {
+	this->username = username;
 	this->m_terminate = false;
 
 	this->m_activeProtocol =
@@ -45,28 +47,13 @@ client::client(
 	this->m_UDPsocket.open(
 		udp::v4());
 
-	// necessary? getting a crash later when trying to receive if removed
-	std::string initiateMessage = "Client at has connected.\n";
-	std::string source = "test";
+	std::string initiateMessage = this->username + " has connected.\n";
+	std::string source = this->username;
 	std::string destination = "broadcast";
-	// dataMessage currentMessage(initiateMessage, "", "");
 
-	// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
+	dataMessage connectionMessage(initiateMessage, source, destination, "connection");
 
-	const uint16_t arbitraryLength = 256;
-
-	std::vector<char> payloadToSend(initiateMessage.begin(), initiateMessage.end());
-	std::vector<char> sourceToSend(source.begin(), source.end());
-	std::vector<char> destinationToSend(destination.begin(), destination.end());
-
-	boost::array<boost::asio::const_buffer, 3> buffersToSend = {
-		boost::asio::buffer(payloadToSend),
-		boost::asio::buffer(sourceToSend),
-		boost::asio::buffer(destinationToSend)};
-
-	this->m_UDPsocket.send_to(
-		buffersToSend,
-		m_serverEndPoint);
+	this->sendOverUDP(connectionMessage);
 };
 
 //-------------------------------------------------------------------------- run
@@ -100,13 +87,13 @@ void client::inputLoop()
 		std::cout << "Enter a message: " << std::endl;
 		std::getline(std::cin, message);
 		// TODO_MT: we need to send vector data through the buffer so we can send everything in one go
-		dataMessage currentMessage(message, "", "");
+		dataMessage currentMessage(message, this->username, "broadcast", "chat");
 
 		if(currentMessage.viewPayload() == "/exit")
 		{
 			this->m_terminate = true;
 			std::string disconnect_message = "<clientIDGoesHere> has disconnected."; // #TODO_AH implement as member variable of client
-			dataMessage currentMessage(disconnect_message, "", "");
+			dataMessage currentMessage(disconnect_message, "", "broadcast", "disconnect");
 
 			this->sendOverUDP(currentMessage);
 			break;
@@ -118,7 +105,6 @@ void client::inputLoop()
 			{
 				case client::protocol::UDP:
 				{
-					// TODO_MT: we need to send as vector data through the buffer so we can send everything in one go
 					this->sendOverUDP(currentMessage);
 					break;
 				}
@@ -180,22 +166,29 @@ void client::receiveLoop()
 void client::receiveOverUDP()
 {
 	try
-	{
+	{  
+		const uint16_t arbitraryLength = 256;
 		// Listen for any data the server endpoint sends back
-		boost::array<boost::asio::mutable_buffer, 3> recv_buf; // #TODO_AH make this a member variable
+		std::vector<char> receivedPayload(arbitraryLength);
+
+		std::vector<boost::asio::mutable_buffer> recv_buf;
+		recv_buf.push_back(boost::asio::buffer(receivedPayload));
 
 		size_t incomingMessageLength =
 			this->m_UDPsocket.receive_from(
 				recv_buf,
 				this->m_serverEndPoint);
 
+		const std::string payloadAsString(
+			receivedPayload.begin(),
+			receivedPayload.end());
+		dataMessage message("test", "test", "test", "test");
+		message.assign(payloadAsString);
+
 		if(incomingMessageLength > 0)
 		{
 			// output data
-			/* #TODO_AH implement interpretation of 3 buffers
-			std::cout.write(
-				recv_buf.data(),
-				incomingMessageLength);*/
+			std::cout << message.viewPayload() << std::endl;
 		}
 
 		std::cout << std::endl;

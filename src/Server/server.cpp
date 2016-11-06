@@ -59,15 +59,11 @@ void server::listenLoop()
 
 		// Wait for connection
 		std::vector<char> receivedPayload(arbitraryLength);
-		std::vector<char> receivedSource(arbitraryLength);
-		std::vector<char> receivedDestination(arbitraryLength);
 
 		boost::system::error_code error;
 
-		boost::array<boost::asio::mutable_buffer, 3> buffers = {
-			boost::asio::buffer(receivedPayload),
-			boost::asio::buffer(receivedSource),
-			boost::asio::buffer(receivedDestination)};
+		std::vector<boost::asio::mutable_buffer> buffers;
+		buffers.push_back(boost::asio::buffer(receivedPayload));
 
 		// remote_endpoint object is populated by receive_from()
 		m_UDPsocket.receive_from(
@@ -79,29 +75,20 @@ void server::listenLoop()
 			throw boost::system::system_error(error);
 		}
 
-		this->addConnections(this->m_remoteEndPoint);
-
 		const std::string payloadAsString(
-			receivedPayload.begin(), 
+			receivedPayload.begin(),
 			receivedPayload.end());
 
-		const std::string sourceAsString(
-			receivedSource.begin(),
-			receivedSource.end());
+		dataMessage message("test", "test", "test", "test");
+		message.assign(payloadAsString);
 
-		const std::string destinationAsString(
-			receivedDestination.begin(),
-			receivedDestination.end());
+		std::cout << "Received " << message.viewMessageType() << " message from ";
+		std::cout << message.viewSourceID() << std::endl;
 
-		const dataMessage message(
-			payloadAsString, 
-			sourceAsString, 
-			destinationAsString);
-
-		std::cout << "Received message from: ";
-		std::cout << this->m_remoteEndPoint << std::endl;
-		std::cout << message.viewPayload() << std::endl;
-
+		if(message.viewMessageType() == "connection")
+		{
+			this->addConnections(message.viewSourceID(), this->m_remoteEndPoint);
+		}
 		this->addToMessageQueue(message);
 	}
 }
@@ -144,13 +131,17 @@ void server::relayUDP()
 					continue;
 				}
 
-				// #TODO_MT test code? remove later if yes
-				std::cout << currentMessage.viewPayload() << std::endl;
+				dataMessage messageToSend(
+					currentMessage.viewPayload(),
+					currentMessage.viewSourceID(),
+					currentMessage.viewDestinationID(),
+					"ACK"
+					);
 
 				// #TODO_AH figure out how to use send_to with a vector instead of a buffer
 				// the documentation for send_to mentions it ~20 lines down
 				this->m_UDPsocket.send_to(
-					boost::asio::buffer(currentMessage.viewPayload()), // should be currentMessage.asVector()
+					messageToSend.asConstBuffer(),
 					currentClient.second, 0, ignoredError);
 			}
 		}
@@ -177,11 +168,11 @@ void server::relayBluetooth()
 //  Add new connections to connections list
 //------------------------------------------------------------------------------
 void server::addConnections(
+	std::string clientID,
 	const boost::asio::ip::udp::endpoint& client)
 {
-	// #TODO_AH make sure this only adds the connection if the client is not already connected
 	this->m_connectedClients.push_back(
-		std::make_pair("tempClientID", client)); // #TODO_AH fix me
+		std::make_pair(clientID, client)); 
 };
 
 //------------------------------------------------------------ addToMessageQueue
