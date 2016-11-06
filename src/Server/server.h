@@ -30,8 +30,12 @@ private:
 
 	void relayBluetooth();
 
-	void addConnections(
-		std::string clientID,
+	void addConnection(
+		const std::string& clientID,
+		const boost::asio::ip::udp::endpoint& client);
+
+	void removeConnection(
+		const std::string& clientID,
 		const boost::asio::ip::udp::endpoint& client);
 
 	void addToMessageQueue(

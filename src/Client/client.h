@@ -18,7 +18,7 @@ class client
 public:
 	// #TODO_AH header comment blocks
 	client(
-		const std::string username,
+		const std::string& username,
 		boost::asio::io_service &ioService
 		);
 
@@ -39,8 +39,6 @@ private:
 
 	void receiveOverBluetooth();
 
-	void serializeUDPMessage(std::vector<std::string>);
-
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::asio::ip::udp::resolver m_resolver;
@@ -48,5 +46,5 @@ private:
 	boost::thread_group m_threads;
 	client::protocol m_activeProtocol;
 	bool m_terminate;
-	std::string username;
+	std::string m_username;
 };

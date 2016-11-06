@@ -22,12 +22,12 @@ const uint16_t updateInterval = 100;
 //  None
 //------------------------------------------------------------------------------
 client::client(
-	const std::string username,
+	const std::string& inUsername,
 	boost::asio::io_service& ioService) :
 	m_resolver(ioService),
 	m_UDPsocket(ioService)
 {
-	this->username = username;
+	this->m_username = inUsername;
 	this->m_terminate = false;
 
 	this->m_activeProtocol =
@@ -47,13 +47,18 @@ client::client(
 	this->m_UDPsocket.open(
 		udp::v4());
 
-	std::string initiateMessage = this->username + " has connected.\n";
-	std::string source = this->username;
+	std::string initiateMessage = this->m_username + " has connected.";
+	std::string source = this->m_username;
 	std::string destination = "broadcast";
 
-	dataMessage connectionMessage(initiateMessage, source, destination, "connection");
+	dataMessage connectionMessage(
+		initiateMessage,
+		source,
+		destination,
+		"connection");
 
-	this->sendOverUDP(connectionMessage);
+	this->sendOverUDP(
+		connectionMessage);
 };
 
 //-------------------------------------------------------------------------- run
@@ -63,14 +68,14 @@ client::client(
 void client::run()
 {
 	// thread for input/sending messages
-	m_threads.create_thread(
+	this->m_threads.create_thread(
 		boost::bind(&client::inputLoop, this));
 
 	// thread for receiving messages
-	m_threads.create_thread(
+	this->m_threads.create_thread(
 		boost::bind(&client::receiveLoop, this));
 
-	m_threads.join_all();
+	this->m_threads.join_all();
 };
 
 //-------------------------------------------------------------------- inputLoop
@@ -81,22 +86,34 @@ void client::inputLoop()
 {
 	while(!this->m_terminate)
 	{
-		std::string message("");
+		std::string chatInput("");
 
 		// communication with the server
 		std::cout << "Enter a message: " << std::endl;
-		std::getline(std::cin, message);
-		// TODO_MT: we need to send vector data through the buffer so we can send everything in one go
-		dataMessage currentMessage(message, this->username, "broadcast", "chat");
+		std::getline(std::cin, chatInput);
+
+		dataMessage currentMessage(
+			chatInput,
+			this->m_username,
+			"broadcast",
+			"chat");
 
 		if(currentMessage.viewPayload() == "/exit")
 		{
 			this->m_terminate = true;
-			std::string disconnect_message = "<clientIDGoesHere> has disconnected."; // #TODO_AH implement as member variable of client
-			dataMessage currentMessage(disconnect_message, "", "broadcast", "disconnect");
+
+			std::string disconnectMessage =
+				this->m_username + " has disconnected.";
+
+			dataMessage currentMessage(
+				disconnectMessage,
+				this->m_username,
+				"broadcast",
+				"disconnect");
 
 			this->sendOverUDP(currentMessage);
-			break;
+
+			continue;
 		}
 		else
 		{
@@ -166,7 +183,7 @@ void client::receiveLoop()
 void client::receiveOverUDP()
 {
 	try
-	{  
+	{
 		const uint16_t arbitraryLength = 256;
 		// Listen for any data the server endpoint sends back
 
@@ -179,14 +196,17 @@ void client::receiveOverUDP()
 
 		dataMessage message(
 			receivedMessage);
-		
+
 		if(incomingMessageLength > 0)
 		{
-			// output data
+			if((message.viewMessageType() != "connection")
+				&&(message.viewMessageType() != "disconnect"))
+			{
+				std::cout << message.viewSourceID() << " says: ";
+			}
+
 			std::cout << message.viewPayload() << std::endl;
 		}
-
-		std::cout << std::endl;
 
 		// sleep
 		boost::this_thread::sleep(
@@ -203,15 +223,6 @@ void client::receiveOverUDP()
 //  None
 //------------------------------------------------------------------------------
 void client::receiveOverBluetooth()
-{
-	// #TODO implement receiving over Bluetooth for the client
-};
-
-//--------------------------------------------------------- serializeUDPMessage
-// Implementation notes:
-//  TODO
-//------------------------------------------------------------------------------
-void client::serializeUDPMessage(std::vector<std::string>)
 {
 	// #TODO implement receiving over Bluetooth for the client
 };
