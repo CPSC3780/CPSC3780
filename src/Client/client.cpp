@@ -166,9 +166,13 @@ void client::receiveLoop()
 void client::receiveOverUDP()
 {
 	try
-	{
+	{  
+		const uint16_t arbitraryLength = 256;
 		// Listen for any data the server endpoint sends back
-		boost::array<boost::asio::mutable_buffer, 3> recv_buf; // #TODO_AH make this a member variable
+		std::vector<char> receivedPayload(arbitraryLength);
+
+		std::vector<boost::asio::mutable_buffer> recv_buf;
+		recv_buf.push_back(boost::asio::buffer(receivedPayload));
 
 		size_t incomingMessageLength =
 			this->m_UDPsocket.receive_from(

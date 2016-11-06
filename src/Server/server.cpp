@@ -83,7 +83,6 @@ void server::listenLoop()
 
 		std::cout << "Received message from: ";
 		std::cout << this->m_remoteEndPoint << std::endl;
-		std::cout << payloadAsString << std::endl;
 
 		dataMessage message("test", "test", "test");
 		message.assign(payloadAsString);
@@ -131,11 +130,13 @@ void server::relayUDP()
 
 				// #TODO_MT test code? remove later if yes
 				std::cout << currentMessage.viewPayload() << std::endl;
+				std::cout << currentMessage.viewSourceID() << std::endl;
+				std::cout << currentMessage.viewDestinationID() << std::endl;
 
 				// #TODO_AH figure out how to use send_to with a vector instead of a buffer
 				// the documentation for send_to mentions it ~20 lines down
 				this->m_UDPsocket.send_to(
-					boost::asio::buffer(currentMessage.viewPayload()), // should be currentMessage.asVector()
+					currentMessage.asConstBuffer(),
 					currentClient.second, 0, ignoredError);
 			}
 		}
