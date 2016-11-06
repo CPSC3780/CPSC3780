@@ -179,13 +179,16 @@ void client::receiveOverUDP()
 				recv_buf,
 				this->m_serverEndPoint);
 
+		const std::string payloadAsString(
+			receivedPayload.begin(),
+			receivedPayload.end());
+		dataMessage message("test", "test", "test");
+		message.assign(payloadAsString);
+
 		if(incomingMessageLength > 0)
 		{
 			// output data
-			/* #TODO_AH implement interpretation of 3 buffers
-			std::cout.write(
-				recv_buf.data(),
-				incomingMessageLength);*/
+			std::cout << message.viewPayload() << std::endl;
 		}
 
 		std::cout << std::endl;
