@@ -11,11 +11,13 @@
 dataMessage::dataMessage(
 	const std::string& inPayload,
 	const std::string& inSourceID,
-	const std::string& inDestinationID = "broadcast")
+	const std::string& inDestinationID = "broadcast",
+	const std::string& inType = "")
 {
 	this->m_payload = inPayload + "/?";
 	this->m_sourceID = inSourceID + "/?";
 	this->m_destinationID = inDestinationID + "/?";
+	this->m_type = inType + "/?";
 };
 
 //------------------------------------------------------------------ constructor
@@ -59,6 +61,15 @@ const std::string& dataMessage::viewSourceID() const
 const std::string& dataMessage::viewDestinationID() const
 {
 	return this->m_destinationID;
+};
+
+//------------------------------------------------------------ viewMessageType
+// Implementation notes:
+//  Returns a const reference to the message type
+//------------------------------------------------------------------------------
+const std::string& dataMessage::viewMessageType() const
+{
+	return this->m_type;
 };
 
 //---------------------------------------------------------------- asConstBuffer
@@ -115,7 +126,7 @@ boost::array<boost::asio::mutable_buffer, 3> dataMessage::asMutableBuffer() cons
 std::string dataMessage::asString() const
 {
 	std::string stringifiedMessage =
-		m_payload + "/?" + m_sourceID + "/?" + m_destinationID + "/?";
+		m_payload + "/?" + m_sourceID + "/?" + m_destinationID + "/?" + m_type + "/?";
 
 	return stringifiedMessage;
 };
@@ -131,8 +142,13 @@ void dataMessage::assign(std::string s)
 
 	this->m_payload = s.substr(0, s.find(delimiter));
 	s.erase(0, s.find(delimiter) + delimiter.length());
+
 	this->m_sourceID = s.substr(0, s.find(delimiter));
 	s.erase(0, s.find(delimiter) + delimiter.length());
+
 	this->m_destinationID = s.substr(0, s.find(delimiter));
+	s.erase(0, s.find(delimiter) + delimiter.length());
+
+	this->m_type = s.substr(0, s.find(delimiter));
 	s.erase(0, s.find(delimiter) + delimiter.length());
 };

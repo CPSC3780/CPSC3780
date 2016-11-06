@@ -75,17 +75,20 @@ void server::listenLoop()
 			throw boost::system::system_error(error);
 		}
 
-		this->addConnections(this->m_remoteEndPoint);
 		const std::string payloadAsString(
 			receivedPayload.begin(),
 			receivedPayload.end());
 
-
-		std::cout << "Received message from: ";
-		std::cout << this->m_remoteEndPoint << std::endl;
-
-		dataMessage message("test", "test", "test");
+		dataMessage message("test", "test", "test", "test");
 		message.assign(payloadAsString);
+
+		std::cout << "Received message from ";
+		std::cout << message.viewSourceID() << std::endl;
+
+		if(message.viewMessageType() == "connection")
+		{
+			this->addConnections(this->m_remoteEndPoint);
+		}
 		this->addToMessageQueue(message);
 	}
 }
@@ -122,6 +125,9 @@ void server::relayUDP()
 			// #TODO_AH pair is kinda ugly, maybe make this a class? rename client to something else?
 			for(const std::pair<std::string, boost::asio::ip::udp::endpoint> currentClient : this->m_connectedClients)
 			{
+				std::cout << "Is this executing?" << std::endl;
+				std::cout << currentClient.first << std::endl;
+				std::cout << currentMessage.viewSourceID() << std::endl;
 				if(currentClient.first == currentMessage.viewSourceID())
 				{
 					// Continue so we don't relay the sent message back to the sender
@@ -131,7 +137,8 @@ void server::relayUDP()
 				dataMessage messageToSend(
 					currentMessage.viewPayload(),
 					currentMessage.viewSourceID(),
-					currentMessage.viewDestinationID()
+					currentMessage.viewDestinationID(),
+					"ACK"
 					);
 
 				// #TODO_AH figure out how to use send_to with a vector instead of a buffer

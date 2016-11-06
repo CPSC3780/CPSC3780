@@ -15,7 +15,8 @@ public:
 	dataMessage(
 		const std::string& inPayload,
 		const std::string& inSourceID,
-		const std::string& inDestinationID);
+		const std::string& inDestinationID,
+		const std::string& inType);
 
 	dataMessage(
 		boost::asio::mutable_buffer& receivedBuffer);
@@ -23,6 +24,7 @@ public:
 	const std::string& viewPayload() const;
 	const std::string& viewSourceID() const;
 	const std::string& viewDestinationID() const;
+	const std::string& viewMessageType() const;
 
 	boost::array<boost::asio::const_buffer, 3> asConstBuffer() const;
 	boost::array<boost::asio::mutable_buffer, 3> asMutableBuffer() const;
@@ -35,4 +37,5 @@ private:
 	std::string m_payload;
 	std::string m_sourceID;
 	std::string m_destinationID;
+	std::string m_type;
 };

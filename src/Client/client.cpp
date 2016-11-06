@@ -47,11 +47,11 @@ client::client(
 	this->m_UDPsocket.open(
 		udp::v4());
 
-	std::string initiateMessage = "Client has connected.\n";
-	std::string source = "test";
+	std::string initiateMessage = this->username + " has connected.\n";
+	std::string source = this->username;
 	std::string destination = "broadcast";
 
-	dataMessage connectionMessage(initiateMessage, source, destination);
+	dataMessage connectionMessage(initiateMessage, source, destination, "connection");
 
 	this->sendOverUDP(connectionMessage);
 };
@@ -87,13 +87,13 @@ void client::inputLoop()
 		std::cout << "Enter a message: " << std::endl;
 		std::getline(std::cin, message);
 		// TODO_MT: we need to send vector data through the buffer so we can send everything in one go
-		dataMessage currentMessage(message, "test", "broadcast");
+		dataMessage currentMessage(message, this->username, "broadcast", "chat");
 
 		if(currentMessage.viewPayload() == "/exit")
 		{
 			this->m_terminate = true;
 			std::string disconnect_message = "<clientIDGoesHere> has disconnected."; // #TODO_AH implement as member variable of client
-			dataMessage currentMessage(disconnect_message, "", "broadcast");
+			dataMessage currentMessage(disconnect_message, "", "broadcast", "disconnect");
 
 			this->sendOverUDP(currentMessage);
 			break;
@@ -182,7 +182,7 @@ void client::receiveOverUDP()
 		const std::string payloadAsString(
 			receivedPayload.begin(),
 			receivedPayload.end());
-		dataMessage message("test", "test", "test");
+		dataMessage message("test", "test", "test", "test");
 		message.assign(payloadAsString);
 
 		if(incomingMessageLength > 0)
