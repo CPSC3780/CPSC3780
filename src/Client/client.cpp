@@ -101,7 +101,6 @@ void client::inputLoop()
 
 		if(temp == "/message")
 		{
-			std::string destination("");
 			std::string actualMessage("");
 			ss >> destination >> actualMessage;
 			

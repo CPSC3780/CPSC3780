@@ -151,6 +151,16 @@ void server::relayUDP()
 		else
 		{
 			// search connectedClients.first for currentMessage.destination
+			//for(const std::pair<std::string, boost::asio::ip::udp::endpoint> currentClient : this->m_connectedClients)
+			//{
+				//if(currentClient.first == currentMessage.viewSourceID())
+				//{
+					//this->m_UDPsocket.send_to(
+						//boost::asio::buffer(currentMessage.asCharVector()),
+						//currentClient.second, 0, ignoredError);
+					//break;
+				//}
+			//}
 		}
 
 		this->m_messageQueue.pop();
