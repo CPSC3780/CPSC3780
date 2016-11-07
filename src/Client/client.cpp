@@ -106,9 +106,9 @@ void client::inputLoop()
 		if(temp == "/message")
 		{
 			std::string actualMessage("");
-			ss >> destination >> actualMessage;
+			ss >> destination;
 			
-			chatInput = actualMessage;
+			chatInput = chatInput.substr(chatInput.find(destination) + destination.length());
 			messageType = "private";
 		}
 
