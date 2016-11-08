@@ -6,4 +6,12 @@ namespace constants
 	{
 		return "/?";
 	}
+
+	enum MessageType
+	{
+		CONNECTION = 1,
+		PRIVATE = 2,
+		DISCONNECT = 3,
+		CHAT = 4,
+	};
 }
