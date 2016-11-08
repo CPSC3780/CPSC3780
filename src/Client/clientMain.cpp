@@ -13,7 +13,7 @@ int main()
 	{
 		std::string username("");
 		std::cout << "Enter your username: " << std::endl;
-		std::getline(std::cin, username);
+		std::cin >> username;
 		boost::asio::io_service ioService;
 
 		client clientInstance(username, ioService);
