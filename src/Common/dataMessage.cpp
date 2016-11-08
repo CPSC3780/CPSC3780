@@ -1,5 +1,6 @@
 // STL
 #include <string>
+#include <iostream>
 
 // Project
 #include "dataMessage.h"
@@ -13,7 +14,7 @@ dataMessage::dataMessage(
 	const std::string& inPayload,
 	const std::string& inSourceID,
 	const std::string& inDestinationID = "broadcast",
-	const std::string& inMessageType = "")
+	const int inMessageType = constants::CHAT)
 {
 	this->m_payload = inPayload;
 	this->m_sourceID = inSourceID;
@@ -41,7 +42,8 @@ dataMessage::dataMessage(
 	this->m_destinationID = asString.substr(0, asString.find(constants::messageDelimiter()));
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 
-	this->m_messageType = asString.substr(0, asString.find(constants::messageDelimiter()));
+	std::string messageType = asString.substr(0, asString.find(constants::messageDelimiter()));
+	this->m_messageType = this->messageTypeStringToInt(messageType);
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 };
 
@@ -76,9 +78,54 @@ const std::string& dataMessage::viewDestinationID() const
 // Implementation notes:
 //  Returns a const reference to the message type
 //------------------------------------------------------------------------------
-const std::string& dataMessage::viewMessageType() const
+const int dataMessage::viewMessageType() const
 {
 	return this->m_messageType;
+};
+
+//------------------------------------------------------------ viewMessageTypeAsString
+// Implementation notes:
+//  Returns a const string reference to the message type
+//------------------------------------------------------------------------------
+const std::string dataMessage::viewMessageTypeAsString() const
+{
+	switch(this->m_messageType)
+	{
+	case constants::CONNECTION:
+		return "connection";
+	case constants::DISCONNECT:
+		return "disconnect";
+	case constants::PRIVATE:
+		return "private";
+	case constants::CHAT:
+		return "chat";
+	default:
+		return "other";
+	}
+};
+
+//------------------------------------------------------------ viewMessageTypeAsString
+// Implementation notes:
+//  Returns a const int reference to the message type
+//------------------------------------------------------------------------------
+const int dataMessage::messageTypeStringToInt(std::string& type) const
+{
+	if(type == "connection")
+	{
+		return constants::CONNECTION;
+	}
+	if(type == "private")
+	{
+		return constants::PRIVATE;
+	}
+	if(type == "disconnect")
+	{
+		return constants::DISCONNECT;
+	}
+	if(type == "chat")
+	{
+		return constants::CHAT;
+	}
 };
 
 //----------------------------------------------------------------- asVectorChar
@@ -91,7 +138,7 @@ std::vector<char> dataMessage::asCharVector() const
 		this->m_payload + constants::messageDelimiter() 
 		+ this->m_sourceID + constants::messageDelimiter()
 		+ this->m_destinationID + constants::messageDelimiter()
-		+ this->m_messageType + constants::messageDelimiter());
+		+ this->viewMessageTypeAsString() + constants::messageDelimiter());
 
 	return std::vector<char>(
 		messageAsString.begin(),
