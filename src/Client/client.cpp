@@ -109,7 +109,7 @@ void client::inputLoop()
 			std::string actualMessage("");
 			ss >> destination;
 			
-			chatInput = chatInput.substr(chatInput.find(destination) + destination.length());
+			std::getline(ss, chatInput);
 			messageType = constants::PRIVATE;
 		}
 
