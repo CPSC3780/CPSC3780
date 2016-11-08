@@ -10,6 +10,7 @@
 // Project
 #include "client.h"
 #include "../Common/dataMessage.h"
+#include "../Common/constants.h"
 
 using boost::asio::ip::udp;
 
@@ -55,7 +56,7 @@ client::client(
 		initiateMessage,
 		source,
 		destination,
-		"connection");
+		constants::CONNECTION);
 
 	this->sendOverUDP(
 		connectionMessage);
@@ -95,7 +96,7 @@ void client::inputLoop()
 		// By default, destination and message type are "broadcast"
 		// and "chat", respectively
 		std::string destination = "broadcast";
-		std::string messageType = "chat";
+		int messageType = constants::CHAT;
 
 		std::stringstream ss;
 		ss << chatInput;
@@ -109,7 +110,7 @@ void client::inputLoop()
 			ss >> destination;
 			
 			chatInput = chatInput.substr(chatInput.find(destination) + destination.length());
-			messageType = "private";
+			messageType = constants::PRIVATE;
 		}
 
 		dataMessage currentMessage(
@@ -121,7 +122,6 @@ void client::inputLoop()
 		if(currentMessage.viewPayload() == "/exit")
 		{
 			this->m_terminate = true;
-			messageType = "disconnect";
 
 			std::string disconnectMessage =
 				this->m_username + " has disconnected.";
@@ -130,7 +130,7 @@ void client::inputLoop()
 				disconnectMessage,
 				this->m_username,
 				destination,
-				messageType);
+				constants::DISCONNECT);
 
 			this->sendOverUDP(currentMessage);
 
@@ -220,8 +220,8 @@ void client::receiveOverUDP()
 
 		if(incomingMessageLength > 0)
 		{
-			if((message.viewMessageType() != "connection")
-				&&(message.viewMessageType() != "disconnect"))
+			if((message.viewMessageTypeAsString() != "connection")
+				&&(message.viewMessageTypeAsString() != "disconnect"))
 			{
 				std::cout << message.viewSourceID() << " says: ";
 			}

@@ -9,6 +9,7 @@
 
 // Project
 #include "server.h"
+#include "../Common/constants.h"
 
 using boost::asio::ip::udp;
 
@@ -75,29 +76,21 @@ void server::listenLoop()
 		dataMessage message(
 			receivedPayload);
 
-		std::cout << "Received " << message.viewMessageType();
+		std::cout << "Received " << message.viewMessageTypeAsString();
 		std::cout << " message from " << message.viewSourceID() << std::endl;
 
-		if(message.viewMessageType() == "disconnect")
+		switch(message.viewMessageType())
 		{
-			this->removeConnection(
-				message.viewSourceID(),
-				this->m_remoteEndPoint);
-		}
-
-		if(message.viewMessageType() == "connection")
-		{
+		case constants::CONNECTION:
 			this->addConnection(
 				message.viewSourceID(),
 				this->m_remoteEndPoint);
-		}
-
-		if((message.viewMessageType() != "connection") 
-			&& (message.viewMessageType() != "disconnect"))
-		{
-			// #TODO decide if test code or if we should keep
-			std::cout << "Message: " << message.viewPayload() << std::endl;
-			std::cout << "Target: " << message.viewDestinationID() << std::endl;
+			break;
+		case constants::DISCONNECT:
+			this->removeConnection(
+				message.viewSourceID(),
+				this->m_remoteEndPoint);
+			break;
 		}
 
 		this->addToMessageQueue(
@@ -153,8 +146,6 @@ void server::relayUDP()
 			// search connectedClients.first for currentMessage.destination
 			for(const std::pair<std::string, boost::asio::ip::udp::endpoint> connectedClient : this->m_connectedClients)
 			{
-				std::cout << "client: " << connectedClient.first << std::endl;
-				std::cout << "destination client: " << currentMessage.viewSourceID() << std::endl;
 				if(connectedClient.first == currentMessage.viewDestinationID())
 				{
 					this->m_UDPsocket.send_to(
