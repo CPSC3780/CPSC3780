@@ -14,8 +14,6 @@
 
 using boost::asio::ip::udp;
 
-const uint16_t updateInterval = 100;
-
 // #TODO_AH fill in implementation notes
 
 //------------------------------------------------------------------ constructor
@@ -96,7 +94,7 @@ void client::inputLoop()
 		// By default, destination and message type are "broadcast"
 		// and "chat", respectively
 		std::string destination = "broadcast";
-		int messageType = constants::CHAT;
+		constants::MessageType messageType = constants::MessageType::CHAT;
 
 		std::stringstream ss;
 		ss << chatInput;
@@ -110,7 +108,7 @@ void client::inputLoop()
 			ss >> destination;
 			
 			std::getline(ss, chatInput);
-			messageType = constants::PRIVATE_MESSAGE;
+			messageType = constants::MessageType::PRIVATE_MESSAGE;
 		}
 
 		dataMessage currentMessage(
@@ -231,7 +229,8 @@ void client::receiveOverUDP()
 
 		// sleep
 		boost::this_thread::sleep(
-			boost::posix_time::millisec(updateInterval));
+			boost::posix_time::millisec(
+			constants::updateIntervalMilliseconds));
 	}
 	catch(std::exception& exception)
 	{

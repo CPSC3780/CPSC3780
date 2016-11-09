@@ -1,3 +1,5 @@
+#pragma once
+
 // Boost
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
@@ -7,6 +9,7 @@
 #include <queue>
 #include <string>
 #include <utility>
+#include <cstdint>
 
 // Project
 #include "../Common/dataMessage.h"
@@ -16,7 +19,8 @@ class server
 public:
 	// #TODO_AH header comment blocks
 	server(
-		boost::asio::io_service &ioService);
+		const uint16_t& inListeningPort,
+		boost::asio::io_service& ioService);
 
 	void run();
 

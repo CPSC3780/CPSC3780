@@ -19,7 +19,7 @@ public:
 		const std::string& inPayload,
 		const std::string& inSourceID,
 		const std::string& inDestinationID,
-		const int inType);
+		const constants::MessageType inType);
 
 	dataMessage(
 		const std::vector<char>& inCharVector);
@@ -38,5 +38,5 @@ private:
 	std::string m_payload;
 	std::string m_sourceID;
 	std::string m_destinationID;
-	int m_messageType;
+	constants::MessageType m_messageType;
 };

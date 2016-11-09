@@ -14,7 +14,7 @@ dataMessage::dataMessage(
 	const std::string& inPayload,
 	const std::string& inSourceID,
 	const std::string& inDestinationID = "broadcast",
-	const int inMessageType = constants::CHAT)
+	const constants::MessageType inMessageType = constants::MessageType::CHAT)
 {
 	this->m_payload = inPayload;
 	this->m_sourceID = inSourceID;
@@ -119,7 +119,8 @@ const std::string dataMessage::viewMessageTypeAsString() const
 // Implementation notes:
 //  Converts the string to the corresponding messageType enum
 //------------------------------------------------------------------------------
-const constants::MessageType dataMessage::stringToMessageType(const std::string& type) const
+const constants::MessageType dataMessage::stringToMessageType(
+	const std::string& type) const
 {
 	if(type == "connection")
 	{
@@ -140,6 +141,10 @@ const constants::MessageType dataMessage::stringToMessageType(const std::string&
 	{
 		return constants::MessageType::CHAT;
 	}
+
+	assert(false);
+
+	return constants::MessageType::UNDEFINED;
 };
 
 //----------------------------------------------------------------- asVectorChar

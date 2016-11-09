@@ -1,5 +1,6 @@
 // STL
 #include <iostream>
+#include <cstdint>
 
 // Boost
 #include <boost/asio.hpp>
@@ -11,9 +12,31 @@ int main()
 {
 	try
 	{
+		char identifier;
+		bool identifierIsValid;
+
+		do 
+		{
+			std::cout << "Which server instance to launch? ('A' - 'E')" << std::endl;
+			std::cin >> identifier;
+
+			identifierIsValid = 
+				constants::identifierIsValid(identifier);
+
+			if(!identifierIsValid)
+			{
+				std::cout << identifier << " is invalid. Please try again." << std::endl;
+			}
+		} while (!identifierIsValid);
+
+		const uint16_t listeningPort(
+			constants::identifierToPortNumber(identifier));
+
 		boost::asio::io_service ioService;
 
-		server serverInstance(ioService);
+		server serverInstance(
+			listeningPort,
+			ioService);
 
 		serverInstance.run();
 	}

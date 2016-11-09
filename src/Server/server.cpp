@@ -13,21 +13,23 @@
 
 using boost::asio::ip::udp;
 
-const uint16_t listeningPort = 8080;
-
 //------------------------------------------------------------------ constructor
 // Implementation notes:
 //  Initializes the socket with the ioService and the lisentingPort, and sets
 //  the terminate condition to false.
 //------------------------------------------------------------------------------
 server::server(
+	const uint16_t& inListeningPort,
 	boost::asio::io_service& ioService) :
-	m_UDPsocket(ioService, udp::endpoint(udp::v4(), listeningPort))
+	m_UDPsocket(ioService, udp::endpoint(udp::v4(), inListeningPort))
 {
 	this->m_terminate = false;
 
-	std::cout << "Server started." << std::endl;
-	std::cout << "Listening on port: " << listeningPort << std::endl;
+	const std::string serverName(
+		constants::portNumberToServerName(inListeningPort));
+
+	std::cout << serverName << " server started." << std::endl;
+	std::cout << "Listening on port: " << inListeningPort << std::endl;
 };
 
 //-------------------------------------------------------------------------- run
