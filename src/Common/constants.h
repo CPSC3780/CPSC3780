@@ -10,7 +10,7 @@ namespace constants
 	enum MessageType
 	{
 		CONNECTION = 1,
-		PRIVATE = 2,
+		PRIVATE_MESSAGE = 2,
 		DISCONNECT = 3,
 		CHAT = 4,
 	};

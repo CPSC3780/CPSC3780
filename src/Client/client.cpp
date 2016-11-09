@@ -110,7 +110,7 @@ void client::inputLoop()
 			ss >> destination;
 			
 			std::getline(ss, chatInput);
-			messageType = constants::PRIVATE;
+			messageType = constants::PRIVATE_MESSAGE;
 		}
 
 		dataMessage currentMessage(

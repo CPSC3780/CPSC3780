@@ -43,7 +43,7 @@ dataMessage::dataMessage(
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 
 	std::string messageType = asString.substr(0, asString.find(constants::messageDelimiter()));
-	this->m_messageType = this->messageTypeStringToInt(messageType);
+	this->m_messageType = this->stringToMessageType(messageType);
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 };
 
@@ -78,12 +78,12 @@ const std::string& dataMessage::viewDestinationID() const
 // Implementation notes:
 //  Returns a const reference to the message type
 //------------------------------------------------------------------------------
-const int dataMessage::viewMessageType() const
+const constants::MessageType& dataMessage::viewMessageType() const
 {
 	return this->m_messageType;
 };
 
-//------------------------------------------------------------ viewMessageTypeAsString
+//------------------------------------------------------ viewMessageTypeAsString
 // Implementation notes:
 //  Returns a const string reference to the message type
 //------------------------------------------------------------------------------
@@ -91,40 +91,54 @@ const std::string dataMessage::viewMessageTypeAsString() const
 {
 	switch(this->m_messageType)
 	{
-	case constants::CONNECTION:
-		return "connection";
-	case constants::DISCONNECT:
-		return "disconnect";
-	case constants::PRIVATE:
-		return "private";
-	case constants::CHAT:
-		return "chat";
-	default:
-		return "other";
+		case constants::MessageType::CONNECTION:
+		{
+			return "connection";
+		}
+		case constants::MessageType::DISCONNECT:
+		{
+			return "disconnect";
+		}
+		case constants::MessageType::PRIVATE_MESSAGE:
+		{
+			return "private";
+		}
+		case constants::MessageType::CHAT:
+		{
+			return "chat";
+		}
+		default:
+		{
+			assert(false);
+			return "undefined";
+		}
 	}
 };
 
-//------------------------------------------------------------ viewMessageTypeAsString
+//---------------------------------------------------------- stringToMessageType
 // Implementation notes:
-//  Returns a const int reference to the message type
+//  Converts the string to the corresponding messageType enum
 //------------------------------------------------------------------------------
-const int dataMessage::messageTypeStringToInt(std::string& type) const
+const constants::MessageType dataMessage::stringToMessageType(const std::string& type) const
 {
 	if(type == "connection")
 	{
-		return constants::CONNECTION;
+		return constants::MessageType::CONNECTION;
 	}
+
 	if(type == "private")
 	{
-		return constants::PRIVATE;
+		return constants::MessageType::PRIVATE_MESSAGE;
 	}
+
 	if(type == "disconnect")
 	{
-		return constants::DISCONNECT;
+		return constants::MessageType::DISCONNECT;
 	}
+
 	if(type == "chat")
 	{
-		return constants::CHAT;
+		return constants::MessageType::CHAT;
 	}
 };
 
@@ -135,7 +149,7 @@ const int dataMessage::messageTypeStringToInt(std::string& type) const
 std::vector<char> dataMessage::asCharVector() const
 {
 	const std::string messageAsString(
-		this->m_payload + constants::messageDelimiter() 
+		this->m_payload + constants::messageDelimiter()
 		+ this->m_sourceID + constants::messageDelimiter()
 		+ this->m_destinationID + constants::messageDelimiter()
 		+ this->viewMessageTypeAsString() + constants::messageDelimiter());

@@ -81,16 +81,24 @@ void server::listenLoop()
 
 		switch(message.viewMessageType())
 		{
-		case constants::CONNECTION:
-			this->addConnection(
-				message.viewSourceID(),
-				this->m_remoteEndPoint);
-			break;
-		case constants::DISCONNECT:
-			this->removeConnection(
-				message.viewSourceID(),
-				this->m_remoteEndPoint);
-			break;
+			case constants::MessageType::CONNECTION:
+			{
+				this->addConnection(
+					message.viewSourceID(),
+					this->m_remoteEndPoint);
+				break;
+			}
+			case constants::MessageType::DISCONNECT:
+			{
+				this->removeConnection(
+					message.viewSourceID(),
+					this->m_remoteEndPoint);
+				break;
+			}
+			default:
+			{
+				assert(false);
+			}
 		}
 
 		this->addToMessageQueue(
