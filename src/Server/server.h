@@ -48,7 +48,6 @@ private:
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::thread_group m_threads;
-	boost::asio::ip::udp::endpoint m_remoteEndPoint; // #TODO_AH find out current purpose, should have been replaced by m_connectClients, no?
 	std::vector<connectedClient> m_connectedClients;
 	std::queue<dataMessage> m_messageQueue;
 	bool m_terminate;
