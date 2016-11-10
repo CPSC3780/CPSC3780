@@ -8,6 +8,9 @@
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 
+// Project
+#include "../Common/constants.h"
+
 class dataMessage
 {
 public:
@@ -16,7 +19,7 @@ public:
 		const std::string& inPayload,
 		const std::string& inSourceID,
 		const std::string& inDestinationID,
-		const int inType);
+		const constants::MessageType inType);
 
 	dataMessage(
 		const std::vector<char>& inCharVector);
@@ -24,8 +27,8 @@ public:
 	const std::string& viewPayload() const;
 	const std::string& viewSourceID() const;
 	const std::string& viewDestinationID() const;
-	const int viewMessageType() const;
-	const int messageTypeStringToInt(std::string&) const;
+	const constants::MessageType& viewMessageType() const;
+	const constants::MessageType stringToMessageType(const std::string&) const;
 	const std::string viewMessageTypeAsString() const;
 
 	std::vector<char> asCharVector() const;
@@ -35,5 +38,5 @@ private:
 	std::string m_payload;
 	std::string m_sourceID;
 	std::string m_destinationID;
-	int m_messageType;
+	constants::MessageType m_messageType;
 };

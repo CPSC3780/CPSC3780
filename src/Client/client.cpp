@@ -12,15 +12,9 @@
 #include "../Common/dataMessage.h"
 #include "../Common/constants.h"
 
-using boost::asio::ip::udp;
-
-const uint16_t updateInterval = 100;
-
-// #TODO_AH fill in implementation notes
-
 //------------------------------------------------------------------ constructor
 // Implementation notes:
-//  None
+//  Initializes the client and establishes a connection with the server.
 //------------------------------------------------------------------------------
 client::client(
 	const std::string& inUsername,
@@ -34,11 +28,12 @@ client::client(
 	this->m_activeProtocol =
 		client::protocol::UDP;
 
+	// #TODO replace these with dynamic IP stuff
 	const std::string host = "localhost";
 	const std::string port = "8080";
 
-	udp::resolver::query serverQuery(
-		udp::v4(),
+	boost::asio::ip::udp::resolver::query serverQuery(
+		boost::asio::ip::udp::v4(),
 		host,
 		port);
 
@@ -46,7 +41,7 @@ client::client(
 		*this->m_resolver.resolve(serverQuery);
 
 	this->m_UDPsocket.open(
-		udp::v4());
+		boost::asio::ip::udp::v4());
 
 	std::string initiateMessage = this->m_username + " has connected.";
 	std::string source = this->m_username;
@@ -64,7 +59,8 @@ client::client(
 
 //-------------------------------------------------------------------------- run
 // Implementation notes:
-//  None
+//  Creates the various threads for the necessary loops. These threads loop
+//  until a terminate condition is reached.
 //------------------------------------------------------------------------------
 void client::run()
 {
@@ -81,7 +77,8 @@ void client::run()
 
 //-------------------------------------------------------------------- inputLoop
 // Implementation notes:
-//  None
+//  Parses the user input from the command line, branches to different areas
+//  based on the parsed /command, if no /command found, broadcast the message
 //------------------------------------------------------------------------------
 void client::inputLoop()
 {
@@ -96,7 +93,7 @@ void client::inputLoop()
 		// By default, destination and message type are "broadcast"
 		// and "chat", respectively
 		std::string destination = "broadcast";
-		int messageType = constants::CHAT;
+		constants::MessageType messageType = constants::MessageType::CHAT;
 
 		std::stringstream ss;
 		ss << chatInput;
@@ -110,7 +107,7 @@ void client::inputLoop()
 			ss >> destination;
 			
 			std::getline(ss, chatInput);
-			messageType = constants::PRIVATE;
+			messageType = constants::MessageType::PRIVATE_MESSAGE;
 		}
 
 		dataMessage currentMessage(
@@ -146,12 +143,12 @@ void client::inputLoop()
 					this->sendOverUDP(currentMessage);
 					break;
 				}
-				case client::protocol::Bluetooth:
+				case client::protocol::BLUETOOTH:
 				{
 					this->sendOverBluetooth(currentMessage);
 					break;
 				}
-				case client::protocol::Undefined:
+				case client::protocol::UNDEFINED:
 				default:
 				{
 					assert(false);
@@ -164,7 +161,7 @@ void client::inputLoop()
 
 //------------------------------------------------------------------ sendOverUDP
 // Implementation notes:
-//  None
+//  Sends a message to the sever over UDP
 //------------------------------------------------------------------------------
 void client::sendOverUDP(
 	const dataMessage& message)
@@ -176,7 +173,7 @@ void client::sendOverUDP(
 
 //------------------------------------------------------------ sendOverBluetooth
 // Implementation notes:
-//  None
+//  Sends a message to the server over Bluetooth
 //------------------------------------------------------------------------------
 void client::sendOverBluetooth(
 	const dataMessage& message)
@@ -186,7 +183,7 @@ void client::sendOverBluetooth(
 
 //------------------------------------------------------------------ receiveLoop
 // Implementation notes:
-//  None
+//  Listen for messages from the server
 //------------------------------------------------------------------------------
 void client::receiveLoop()
 {
@@ -199,14 +196,13 @@ void client::receiveLoop()
 
 //--------------------------------------------------------------- receiveOverUDP
 // Implementation notes:
-//  None
+//  Listen for any messages the server sends back over UDP
 //------------------------------------------------------------------------------
 void client::receiveOverUDP()
 {
 	try
 	{
 		const uint16_t arbitraryLength = 256;
-		// Listen for any data the server endpoint sends back
 
 		std::vector<char> receivedMessage(arbitraryLength);
 
@@ -231,7 +227,8 @@ void client::receiveOverUDP()
 
 		// sleep
 		boost::this_thread::sleep(
-			boost::posix_time::millisec(updateInterval));
+			boost::posix_time::millisec(
+			constants::updateIntervalMilliseconds));
 	}
 	catch(std::exception& exception)
 	{
@@ -241,7 +238,7 @@ void client::receiveOverUDP()
 
 //--------------------------------------------------------- receiveOverBluetooth
 // Implementation notes:
-//  None
+//  Listen for any messages the server sends back over Bluetooth
 //------------------------------------------------------------------------------
 void client::receiveOverBluetooth()
 {

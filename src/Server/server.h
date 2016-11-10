@@ -1,3 +1,5 @@
+#pragma once
+
 // Boost
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
@@ -7,8 +9,10 @@
 #include <queue>
 #include <string>
 #include <utility>
+#include <cstdint>
 
 // Project
+#include "./connectedClient.h"
 #include "../Common/dataMessage.h"
 
 class server
@@ -16,7 +20,8 @@ class server
 public:
 	// #TODO_AH header comment blocks
 	server(
-		boost::asio::io_service &ioService);
+		const uint16_t& inListeningPort,
+		boost::asio::io_service& ioService);
 
 	void run();
 
@@ -31,12 +36,11 @@ private:
 	void relayBluetooth();
 
 	void addConnection(
-		const std::string& clientID,
-		const boost::asio::ip::udp::endpoint& client);
+		const std::string& inClientUsername,
+		const boost::asio::ip::udp::endpoint& inClientEndpoint);
 
 	void removeConnection(
-		const std::string& clientID,
-		const boost::asio::ip::udp::endpoint& client);
+		const std::string& inClientUsername);
 
 	void addToMessageQueue(
 		const dataMessage& message);
@@ -44,8 +48,7 @@ private:
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::thread_group m_threads;
-	boost::asio::ip::udp::endpoint m_remoteEndPoint; // #TODO should probably be a list
-	std::vector<std::pair<std::string, boost::asio::ip::udp::endpoint> > m_connectedClients;
+	std::vector<connectedClient> m_connectedClients;
 	std::queue<dataMessage> m_messageQueue;
 	bool m_terminate;
 };

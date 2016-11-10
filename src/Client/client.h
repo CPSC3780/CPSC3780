@@ -1,3 +1,5 @@
+#pragma once
+
 // Boost
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
@@ -10,9 +12,9 @@ class client
 {
 	enum class protocol
 	{
-		Undefined,
+		UNDEFINED,
 		UDP,
-		Bluetooth
+		BLUETOOTH
 	};
 
 public:

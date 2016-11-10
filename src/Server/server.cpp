@@ -11,23 +11,25 @@
 #include "server.h"
 #include "../Common/constants.h"
 
-using boost::asio::ip::udp;
-
-const uint16_t listeningPort = 8080;
-
 //------------------------------------------------------------------ constructor
 // Implementation notes:
-//  Initializes the socket with the ioService and the lisentingPort, and sets
-//  the terminate condition to false.
+//  Initializes the server based on the specified listeningPort
 //------------------------------------------------------------------------------
 server::server(
+	const uint16_t& inListeningPort,
 	boost::asio::io_service& ioService) :
-	m_UDPsocket(ioService, udp::endpoint(udp::v4(), listeningPort))
+	m_UDPsocket(
+		ioService, 
+		boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 
+		inListeningPort))
 {
 	this->m_terminate = false;
 
-	std::cout << "Server started." << std::endl;
-	std::cout << "Listening on port: " << listeningPort << std::endl;
+	const std::string serverName(
+		constants::portNumberToServerName(inListeningPort));
+
+	std::cout << serverName << " server started." << std::endl;
+	std::cout << "Listening on port: " << inListeningPort << std::endl;
 };
 
 //-------------------------------------------------------------------------- run
@@ -58,15 +60,16 @@ void server::listenLoop()
 	{
 		const uint16_t arbitraryLength = 256;
 
-		// Wait for connection
 		std::vector<char> receivedPayload(arbitraryLength);
 
 		boost::system::error_code error;
 
-		// remote_endpoint object is populated by receive_from()
+		boost::asio::ip::udp::endpoint clientEndpoint;
+
+		// receive_from() populates the client endpoint
 		this->m_UDPsocket.receive_from(
 			boost::asio::buffer(receivedPayload),
-			this->m_remoteEndPoint, 0, error);
+			clientEndpoint, 0, error);
 
 		if(error && error != boost::asio::error::message_size)
 		{
@@ -81,16 +84,33 @@ void server::listenLoop()
 
 		switch(message.viewMessageType())
 		{
-		case constants::CONNECTION:
-			this->addConnection(
-				message.viewSourceID(),
-				this->m_remoteEndPoint);
-			break;
-		case constants::DISCONNECT:
-			this->removeConnection(
-				message.viewSourceID(),
-				this->m_remoteEndPoint);
-			break;
+			case constants::MessageType::CONNECTION:
+			{
+				this->addConnection(
+					message.viewSourceID(),
+					clientEndpoint);
+				break;
+			}
+			case constants::MessageType::DISCONNECT:
+			{
+				this->removeConnection(
+					message.viewSourceID());
+				break;
+			}
+			case constants::MessageType::CHAT:
+			{
+				// Do nothing
+				break;
+			}
+			case constants::MessageType::PRIVATE_MESSAGE:
+			{
+				// Do nothing
+				break;
+			}
+			default:
+			{
+				assert(false);
+			}
 		}
 
 		this->addToMessageQueue(
@@ -110,7 +130,7 @@ void server::relayLoop()
 		this->relayUDP();
 		this->relayBluetooth();
 	}
-}
+};
 
 //--------------------------------------------------------------------- relayUDP
 // Implementation notes:
@@ -127,35 +147,33 @@ void server::relayUDP()
 
 		if(currentMessage.viewDestinationID() == "broadcast")
 		{
-			// #TODO_AH pair is kinda ugly, maybe make this a class? rename client to something else?
-			for(const std::pair<std::string, boost::asio::ip::udp::endpoint> currentClient : this->m_connectedClients)
+			// If broadcast, send to all connected clients except sender
+			for(const connectedClient& targetClient : this->m_connectedClients)
 			{
-				if(currentClient.first == currentMessage.viewSourceID())
+				if(targetClient.viewUsername() != currentMessage.viewSourceID())
 				{
-					// Continue so we don't relay the sent message back to the sender
-					continue;
+					this->m_UDPsocket.send_to(
+						boost::asio::buffer(currentMessage.asCharVector()),
+						targetClient.viewEndpoint(), 0, ignoredError);
 				}
-
-				this->m_UDPsocket.send_to(
-					boost::asio::buffer(currentMessage.asCharVector()),
-					currentClient.second, 0, ignoredError);
 			}
 		}
 		else
 		{
-			// search connectedClients.first for currentMessage.destination
-			for(const std::pair<std::string, boost::asio::ip::udp::endpoint> connectedClient : this->m_connectedClients)
+			// if not broadcast, it's a private message, send only to the matched client
+			for(const connectedClient& targetClient : this->m_connectedClients)
 			{
-				if(connectedClient.first == currentMessage.viewDestinationID())
+				if(targetClient.viewUsername() == currentMessage.viewDestinationID())
 				{
 					this->m_UDPsocket.send_to(
 						boost::asio::buffer(currentMessage.asCharVector()),
-						connectedClient.second, 0, ignoredError);
+						targetClient.viewEndpoint(), 0, ignoredError);
 					break;
 				}
 			}
 		}
 
+		// Message sent, remove from queue
 		this->m_messageQueue.pop();
 	}
 };
@@ -174,11 +192,11 @@ void server::relayBluetooth()
 //  Add a new connection to the connections list
 //------------------------------------------------------------------------------
 void server::addConnection(
-	const std::string& clientID,
-	const boost::asio::ip::udp::endpoint& client)
+	const std::string& inClientUsername,
+	const boost::asio::ip::udp::endpoint& inClientEndpoint)
 {
 	this->m_connectedClients.push_back(
-		std::make_pair(clientID, client));
+		connectedClient(inClientUsername, inClientEndpoint));
 };
 
 //------------------------------------------------------------- removeConnection
@@ -186,10 +204,18 @@ void server::addConnection(
 //  Remove the matching connection from the connections list
 //------------------------------------------------------------------------------
 void server::removeConnection(
-	const std::string& clientID,
-	const boost::asio::ip::udp::endpoint& client)
+	const std::string& inClientUsername)
 {
-	// #TODO_AH implement, make sure it sends a disconnect message to all
+	for(std::vector<connectedClient>::iterator currentClient = this->m_connectedClients.begin(); 
+		currentClient != this->m_connectedClients.end(); 
+		++currentClient)
+	{
+		if(currentClient->viewUsername() == inClientUsername)
+		{
+			this->m_connectedClients.erase(currentClient);
+		}
+		break;
+	}
 };
 
 //------------------------------------------------------------ addToMessageQueue
