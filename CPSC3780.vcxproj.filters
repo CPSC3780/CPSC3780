@@ -41,6 +41,9 @@
     <ClCompile Include="src\Common\dataMessage.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
+    <ClCompile Include="src\Server\connectedClient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Server\server.h">
@@ -55,5 +58,6 @@
     <ClInclude Include="src\Common\constants.h">
       <Filter>Source Files\Common</Filter>
     </ClInclude>
+    <ClInclude Include="src\Server\connectedClient.h" />
   </ItemGroup>
 </Project>

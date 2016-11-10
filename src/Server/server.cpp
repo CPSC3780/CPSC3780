@@ -93,8 +93,17 @@ void server::listenLoop()
 			case constants::MessageType::DISCONNECT:
 			{
 				this->removeConnection(
-					message.viewSourceID(),
-					this->m_remoteEndPoint);
+					message.viewSourceID());
+				break;
+			}
+			case constants::MessageType::CHAT:
+			{
+				// Do nothing
+				break;
+			}
+			case constants::MessageType::PRIVATE_MESSAGE:
+			{
+				// Do nothing
 				break;
 			}
 			default:
@@ -137,30 +146,25 @@ void server::relayUDP()
 
 		if(currentMessage.viewDestinationID() == "broadcast")
 		{
-			// #TODO_AH pair is kinda ugly, maybe make this a class? rename client to something else?
-			for(const std::pair<std::string, boost::asio::ip::udp::endpoint> currentClient : this->m_connectedClients)
+			for(const connectedClient& targetClient : this->m_connectedClients)
 			{
-				if(currentClient.first == currentMessage.viewSourceID())
+				if(targetClient.viewUsername() != currentMessage.viewSourceID())
 				{
-					// Continue so we don't relay the sent message back to the sender
-					continue;
+					this->m_UDPsocket.send_to(
+						boost::asio::buffer(currentMessage.asCharVector()),
+						targetClient.viewEndpoint(), 0, ignoredError);
 				}
-
-				this->m_UDPsocket.send_to(
-					boost::asio::buffer(currentMessage.asCharVector()),
-					currentClient.second, 0, ignoredError);
 			}
 		}
 		else
 		{
-			// search connectedClients.first for currentMessage.destination
-			for(const std::pair<std::string, boost::asio::ip::udp::endpoint> connectedClient : this->m_connectedClients)
+			for(const connectedClient& targetClient : this->m_connectedClients)
 			{
-				if(connectedClient.first == currentMessage.viewDestinationID())
+				if(targetClient.viewUsername() == currentMessage.viewDestinationID())
 				{
 					this->m_UDPsocket.send_to(
 						boost::asio::buffer(currentMessage.asCharVector()),
-						connectedClient.second, 0, ignoredError);
+						targetClient.viewEndpoint(), 0, ignoredError);
 					break;
 				}
 			}
@@ -184,11 +188,11 @@ void server::relayBluetooth()
 //  Add a new connection to the connections list
 //------------------------------------------------------------------------------
 void server::addConnection(
-	const std::string& clientID,
-	const boost::asio::ip::udp::endpoint& client)
+	const std::string& inClientUsername,
+	const boost::asio::ip::udp::endpoint& inClientEndpoint)
 {
 	this->m_connectedClients.push_back(
-		std::make_pair(clientID, client));
+		connectedClient(inClientUsername, inClientEndpoint));
 };
 
 //------------------------------------------------------------- removeConnection
@@ -196,10 +200,18 @@ void server::addConnection(
 //  Remove the matching connection from the connections list
 //------------------------------------------------------------------------------
 void server::removeConnection(
-	const std::string& clientID,
-	const boost::asio::ip::udp::endpoint& client)
+	const std::string& inClientUsername)
 {
-	// #TODO_AH implement, make sure it sends a disconnect message to all
+	for(std::vector<connectedClient>::iterator currentClient = this->m_connectedClients.begin(); 
+		currentClient != this->m_connectedClients.end(); 
+		++currentClient)
+	{
+		if(currentClient->viewUsername() == inClientUsername)
+		{
+			this->m_connectedClients.erase(currentClient);
+		}
+		break;
+	}
 };
 
 //------------------------------------------------------------ addToMessageQueue
