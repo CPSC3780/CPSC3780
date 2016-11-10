@@ -11,17 +11,17 @@
 #include "server.h"
 #include "../Common/constants.h"
 
-using boost::asio::ip::udp;
-
 //------------------------------------------------------------------ constructor
 // Implementation notes:
-//  Initializes the socket with the ioService and the lisentingPort, and sets
-//  the terminate condition to false.
+//  Initializes the server based on the specified listeningPort
 //------------------------------------------------------------------------------
 server::server(
 	const uint16_t& inListeningPort,
 	boost::asio::io_service& ioService) :
-	m_UDPsocket(ioService, udp::endpoint(udp::v4(), inListeningPort))
+	m_UDPsocket(
+		ioService, 
+		boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 
+		inListeningPort))
 {
 	this->m_terminate = false;
 
@@ -130,7 +130,7 @@ void server::relayLoop()
 		this->relayUDP();
 		this->relayBluetooth();
 	}
-}
+};
 
 //--------------------------------------------------------------------- relayUDP
 // Implementation notes:

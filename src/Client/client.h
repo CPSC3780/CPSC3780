@@ -12,9 +12,9 @@ class client
 {
 	enum class protocol
 	{
-		Undefined,
+		UNDEFINED,
 		UDP,
-		Bluetooth
+		BLUETOOTH
 	};
 
 public:

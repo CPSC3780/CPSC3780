@@ -123,10 +123,10 @@ namespace constants
 
 	enum MessageType
 	{
+		UNDEFINED = 0,
 		CONNECTION = 1,
 		PRIVATE_MESSAGE = 2,
 		DISCONNECT = 3,
 		CHAT = 4,
-		UNDEFINED = 5,
 	};
 }

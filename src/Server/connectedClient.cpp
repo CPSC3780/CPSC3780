@@ -39,7 +39,7 @@ const boost::asio::ip::udp::endpoint& connectedClient::viewEndpoint() const
 const boost::chrono::system_clock::time_point& connectedClient::viewTimeOfLastActivity() const
 {
 	return this->m_timeOfLastActivity;
-}
+};
 
 //---------------------------------------------------- refreshTimeOfLastActivity
 // Implementation notes:
