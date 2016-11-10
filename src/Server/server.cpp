@@ -60,15 +60,16 @@ void server::listenLoop()
 	{
 		const uint16_t arbitraryLength = 256;
 
-		// Wait for connection
 		std::vector<char> receivedPayload(arbitraryLength);
 
 		boost::system::error_code error;
 
-		// remote_endpoint object is populated by receive_from()
+		boost::asio::ip::udp::endpoint clientEndpoint;
+
+		// receive_from() populates the client endpoint
 		this->m_UDPsocket.receive_from(
 			boost::asio::buffer(receivedPayload),
-			this->m_remoteEndPoint, 0, error);
+			clientEndpoint, 0, error);
 
 		if(error && error != boost::asio::error::message_size)
 		{
@@ -87,7 +88,7 @@ void server::listenLoop()
 			{
 				this->addConnection(
 					message.viewSourceID(),
-					this->m_remoteEndPoint);
+					clientEndpoint);
 				break;
 			}
 			case constants::MessageType::DISCONNECT:
@@ -146,6 +147,7 @@ void server::relayUDP()
 
 		if(currentMessage.viewDestinationID() == "broadcast")
 		{
+			// If broadcast, send to all connected clients except sender
 			for(const connectedClient& targetClient : this->m_connectedClients)
 			{
 				if(targetClient.viewUsername() != currentMessage.viewSourceID())
@@ -158,6 +160,7 @@ void server::relayUDP()
 		}
 		else
 		{
+			// if not broadcast, it's a private message, send only to the matched client
 			for(const connectedClient& targetClient : this->m_connectedClients)
 			{
 				if(targetClient.viewUsername() == currentMessage.viewDestinationID())
@@ -170,6 +173,7 @@ void server::relayUDP()
 			}
 		}
 
+		// Message sent, remove from queue
 		this->m_messageQueue.pop();
 	}
 };
