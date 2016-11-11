@@ -6,8 +6,8 @@
 //  Sets all relevant member variables
 //------------------------------------------------------------------------------
 remoteConnection::remoteConnection(
-	const std::string inIdentifier,
-	const boost::asio::ip::udp::endpoint inEndpoint)
+	const std::string& inIdentifier,
+	const boost::asio::ip::udp::endpoint& inEndpoint)
 {
 	this->m_identifier = inIdentifier;
 	this->m_endpoint = inEndpoint;

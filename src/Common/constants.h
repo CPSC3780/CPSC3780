@@ -15,7 +15,18 @@ namespace constants
 	const uint16_t listeningPortDelta = 8083;
 	const uint16_t listeningPortEcho = 8084;
 
-	static uint16_t identifierToPortNumber(
+	//---------------------------------------- briefServerIdentifierToPortNumber
+	// Brief Description
+	//  Converts a brief server identifier (eg: A, B, C, etc.) to the port 
+	//  number associated with it.
+	//
+	// Method:    briefServerIdentifierToPortNumber
+	// FullName:  constants::briefServerIdentifierToPortNumber
+	// Access:    public static 
+	// Returns:   uint16_t
+	// Parameter: const char & inChar
+	//--------------------------------------------------------------------------
+	static uint16_t briefServerIdentifierToPortNumber(
 		const char& inChar)
 	{
 		uint16_t listeningPort;
@@ -67,8 +78,18 @@ namespace constants
 		return listeningPort;
 	};
 
+	//--------------------------------------------------- portNumberToServerName
+	// Brief Description
+	//  Returns the name of the server associated with the given port number.
+	//
+	// Method:    portNumberToServerName
+	// FullName:  constants::portNumberToServerName
+	// Access:    public static 
+	// Returns:   std::string
+	// Parameter: const uint16_t inPort
+	//--------------------------------------------------------------------------
 	static std::string portNumberToServerName(
-		const uint16_t inPort)
+		const uint16_t& inPort)
 	{
 		std::string serverName;
 
@@ -109,6 +130,18 @@ namespace constants
 		return serverName;
 	};
 
+	//-------------------------------------------------------- identifierIsValid
+	// Brief Description
+	//  Used to determine if the user specified server identifier is valid.
+	//  (As per the specification, only A-E are supported. Lower and uppercase
+	//  are supported for ease of use.
+	//
+	// Method:    identifierIsValid
+	// FullName:  constants::identifierIsValid
+	// Access:    public static 
+	// Returns:   bool
+	// Parameter: const char & inIdentifier
+	//--------------------------------------------------------------------------
 	static bool identifierIsValid(
 		const char& inIdentifier)
 	{
@@ -116,6 +149,16 @@ namespace constants
 			|| ((inIdentifier >= 'a') && (inIdentifier <= 'e'));
 	};
 
+	//--------------------------------------------------------- messageDelimiter
+	// Brief Description
+	//  The character sequence used to delimit messages sent both ways between
+	//  server and client.
+	//
+	// Method:    messageDelimiter
+	// FullName:  constants::messageDelimiter
+	// Access:    public static 
+	// Returns:   std::string
+	//--------------------------------------------------------------------------
 	static inline std::string messageDelimiter()
 	{
 		return "/?";

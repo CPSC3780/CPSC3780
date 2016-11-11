@@ -80,21 +80,21 @@ void server::listenLoop()
 			receivedPayload);
 
 		std::cout << "Received " << message.viewMessageTypeAsString();
-		std::cout << " message from " << message.viewSourceID() << std::endl;
+		std::cout << " message from " << message.viewSourceIdentifier() << std::endl;
 
 		switch(message.viewMessageType())
 		{
 			case constants::MessageType::CONNECTION:
 			{
-				this->addConnection(
-					message.viewSourceID(),
+				this->addClientConnection(
+					message.viewSourceIdentifier(),
 					clientEndpoint);
 				break;
 			}
 			case constants::MessageType::DISCONNECT:
 			{
-				this->removeConnection(
-					message.viewSourceID());
+				this->removeClientConnection(
+					message.viewSourceIdentifier());
 				break;
 			}
 			case constants::MessageType::CHAT:
@@ -145,12 +145,12 @@ void server::relayUDP()
 		const dataMessage& currentMessage(
 			this->m_messageQueue.front());
 
-		if(currentMessage.viewDestinationID() == "broadcast")
+		if(currentMessage.viewDestinationIdentifier() == "broadcast")
 		{
 			// If broadcast, send to all connected clients except sender
 			for(const remoteConnection& targetClient : this->m_connectedClients)
 			{
-				if(targetClient.viewIdentifier() != currentMessage.viewSourceID())
+				if(targetClient.viewIdentifier() != currentMessage.viewSourceIdentifier())
 				{
 					this->m_UDPsocket.send_to(
 						boost::asio::buffer(currentMessage.asCharVector()),
@@ -163,7 +163,7 @@ void server::relayUDP()
 			// if not broadcast, it's a private message, send only to the matched client
 			for(const remoteConnection& targetClient : this->m_connectedClients)
 			{
-				if(targetClient.viewIdentifier() == currentMessage.viewDestinationID())
+				if(targetClient.viewIdentifier() == currentMessage.viewDestinationIdentifier())
 				{
 					this->m_UDPsocket.send_to(
 						boost::asio::buffer(currentMessage.asCharVector()),
@@ -187,11 +187,11 @@ void server::relayBluetooth()
 	// #TODO implement Bluetooth relay
 };
 
-//---------------------------------------------------------------- addConnection
+//---------------------------------------------------------- addClientConnection
 // Implementation notes:
-//  Add a new connection to the connections list
+//  Adds a new client connection to the connections list
 //------------------------------------------------------------------------------
-void server::addConnection(
+void server::addClientConnection(
 	const std::string& inClientUsername,
 	const boost::asio::ip::udp::endpoint& inClientEndpoint)
 {
@@ -199,11 +199,11 @@ void server::addConnection(
 		remoteConnection(inClientUsername, inClientEndpoint));
 };
 
-//------------------------------------------------------------- removeConnection
+//------------------------------------------------------- removeClientConnection
 // Implementation notes:
-//  Remove the matching connection from the connections list
+//  Remove the matching client connection from the connections list
 //------------------------------------------------------------------------------
-void server::removeConnection(
+void server::removeClientConnection(
 	const std::string& inClientUsername)
 {
 	for(std::vector<remoteConnection>::iterator currentClient = this->m_connectedClients.begin(); 

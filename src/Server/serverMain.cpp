@@ -30,7 +30,7 @@ int main()
 		} while (!identifierIsValid);
 
 		const uint16_t listeningPort(
-			constants::identifierToPortNumber(identifier));
+			constants::briefServerIdentifierToPortNumber(identifier));
 
 		boost::asio::io_service ioService;
 

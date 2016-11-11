@@ -14,11 +14,11 @@ dataMessage::dataMessage(
 	const std::string& inPayload,
 	const std::string& inSourceID,
 	const std::string& inDestinationID = "broadcast",
-	const constants::MessageType inMessageType = constants::MessageType::CHAT)
+	const constants::MessageType& inMessageType = constants::MessageType::CHAT)
 {
 	this->m_payload = inPayload;
-	this->m_sourceID = inSourceID;
-	this->m_destinationID = inDestinationID;
+	this->m_sourceIdentifier = inSourceID;
+	this->m_destinationIdentifier = inDestinationID;
 	this->m_messageType = inMessageType;
 };
 
@@ -36,10 +36,10 @@ dataMessage::dataMessage(
 	this->m_payload = asString.substr(0, asString.find(constants::messageDelimiter()));
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 
-	this->m_sourceID = asString.substr(0, asString.find(constants::messageDelimiter()));
+	this->m_sourceIdentifier = asString.substr(0, asString.find(constants::messageDelimiter()));
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 
-	this->m_destinationID = asString.substr(0, asString.find(constants::messageDelimiter()));
+	this->m_destinationIdentifier = asString.substr(0, asString.find(constants::messageDelimiter()));
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 
 	std::string messageType = asString.substr(0, asString.find(constants::messageDelimiter()));
@@ -56,25 +56,25 @@ const std::string& dataMessage::viewPayload() const
 	return this->m_payload;
 };
 
-//----------------------------------------------------------------- viewSourceID
+//--------------------------------------------------------- viewSourceIdentifier
 // Implementation notes:
-//  Returns a const reference to the sourceID string
+//  Returns a const reference to the sourceIdentifier string
 //------------------------------------------------------------------------------
-const std::string& dataMessage::viewSourceID() const
+const std::string& dataMessage::viewSourceIdentifier() const
 {
-	return this->m_sourceID;
+	return this->m_sourceIdentifier;
 };
 
-//------------------------------------------------------------ viewDestinationID
+//---------------------------------------------------- viewDestinationIdentifier
 // Implementation notes:
-//  Returns a const reference to the destinationID string
+//  Returns a const reference to the destinationIdentifier string
 //------------------------------------------------------------------------------
-const std::string& dataMessage::viewDestinationID() const
+const std::string& dataMessage::viewDestinationIdentifier() const
 {
-	return this->m_destinationID;
+	return this->m_destinationIdentifier;
 };
 
-//------------------------------------------------------------ viewMessageType
+//-------------------------------------------------------------- viewMessageType
 // Implementation notes:
 //  Returns a const reference to the message type
 //------------------------------------------------------------------------------
@@ -89,30 +89,33 @@ const constants::MessageType& dataMessage::viewMessageType() const
 //------------------------------------------------------------------------------
 const std::string dataMessage::viewMessageTypeAsString() const
 {
+	std::string messageTypeAsString;
+
 	switch(this->m_messageType)
 	{
 		case constants::MessageType::CONNECTION:
 		{
-			return "connection";
+			messageTypeAsString = "connection";
 		}
 		case constants::MessageType::DISCONNECT:
 		{
-			return "disconnect";
+			messageTypeAsString = "disconnect";
 		}
 		case constants::MessageType::PRIVATE_MESSAGE:
 		{
-			return "private";
+			messageTypeAsString = "private";
 		}
 		case constants::MessageType::CHAT:
 		{
-			return "chat";
+			messageTypeAsString = "chat";
 		}
 		default:
 		{
 			assert(false);
-			return "undefined";
 		}
 	}
+
+	return messageTypeAsString;
 };
 
 //---------------------------------------------------------- stringToMessageType
@@ -155,8 +158,8 @@ std::vector<char> dataMessage::asCharVector() const
 {
 	const std::string messageAsString(
 		this->m_payload + constants::messageDelimiter()
-		+ this->m_sourceID + constants::messageDelimiter()
-		+ this->m_destinationID + constants::messageDelimiter()
+		+ this->m_sourceIdentifier + constants::messageDelimiter()
+		+ this->m_destinationIdentifier + constants::messageDelimiter()
 		+ this->viewMessageTypeAsString() + constants::messageDelimiter());
 
 	return std::vector<char>(
