@@ -19,9 +19,13 @@ server::server(
 	const uint16_t& inListeningPort,
 	boost::asio::io_service& ioService) :
 	m_UDPsocket(
-		ioService, 
-		boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 
-		inListeningPort))
+		ioService,
+		boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(),
+		inListeningPort)),
+	m_leftAdjacentServerConnection(nullptr),
+	m_leftAdjacentServerConnectedClients({}),
+	m_rightAdjacentServerConnection(nullptr),
+	m_rightAdjacentServerConnectedClients({})
 {
 	this->m_terminate = false;
 

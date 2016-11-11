@@ -143,7 +143,16 @@ private:
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::thread_group m_threads;
-	std::vector<remoteConnection> m_connectedClients;
-	std::queue<dataMessage> m_messageQueue;
+
 	bool m_terminate;
+
+	std::queue<dataMessage> m_messageQueue;
+
+	std::vector<remoteConnection> m_connectedClients;
+
+	remoteConnection* m_leftAdjacentServerConnection;
+	std::vector<std::string> m_leftAdjacentServerConnectedClients;
+
+	remoteConnection* m_rightAdjacentServerConnection;
+	std::vector<std::string> m_rightAdjacentServerConnectedClients;
 };
