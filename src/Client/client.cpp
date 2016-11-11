@@ -219,7 +219,7 @@ void client::receiveOverUDP()
 			if((message.viewMessageTypeAsString() != "connection")
 				&&(message.viewMessageTypeAsString() != "disconnect"))
 			{
-				std::cout << message.viewSourceID() << " says: ";
+				std::cout << message.viewSourceIdentifier() << " says: ";
 			}
 
 			std::cout << message.viewPayload() << std::endl;

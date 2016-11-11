@@ -12,43 +12,138 @@
 #include <cstdint>
 
 // Project
-#include "./connectedClient.h"
+#include "./remoteConnection.h"
 #include "../Common/dataMessage.h"
 
 class server
 {
 public:
-	// #TODO_AH header comment blocks
+
+	//-------------------------------------------------------------- constructor
+	// Brief Description
+	//  Constructor for the server
+	//
+	// Method:    server
+	// FullName:  server::server
+	// Access:    public 
+	// Returns:   
+	// Parameter: const uint16_t& inListeningPort
+	// Parameter: boost::asio::io_service& ioService
+	//--------------------------------------------------------------------------
 	server(
 		const uint16_t& inListeningPort,
 		boost::asio::io_service& ioService);
 
+	//---------------------------------------------------------------------- run
+	// Brief Description
+	//  Creates a thread for each major function of the server. These functions
+	//  loop indefinitely.
+	//
+	// Method:    run
+	// FullName:  server::run
+	// Access:    public 
+	// Returns:   void
+	//--------------------------------------------------------------------------
 	void run();
 
 private:
 
+	//--------------------------------------------------------------- listenLoop
+	// Brief Description
+	//  The server's listening loop, used for receiving connections and messages
+	//  from clients and adjacent servers.
+	//
+	// Method:    listenLoop
+	// FullName:  server::listenLoop
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
 	void listenLoop();
 
+	//---------------------------------------------------------------- relayLoop
+	// Brief Description
+	//  The server's relay loop, used to relay the messages to the clients and
+	//  adjacent servers over the supported protocols.
+	//
+	// Method:    relayLoop
+	// FullName:  server::relayLoop
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
 	void relayLoop();
 
+	//----------------------------------------------------------------- relayUDP
+	// Brief Description
+	//  Relays messages to clients and adjacent servers over UDP.
+	//
+	// Method:    relayUDP
+	// FullName:  server::relayUDP
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
 	void relayUDP();
 
+	//----------------------------------------------------------- relayBluetooth
+	// Brief Description
+	//  Relays messages to clients and adjacent servers over Bluetooth.
+	//
+	// Method:    relayBluetooth
+	// FullName:  server::relayBluetooth
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
 	void relayBluetooth();
 
-	void addConnection(
+	//------------------------------------------------------ addClientConnection
+	// Brief Description
+	//  Used by the server to add a new client connection when it receives a
+	//  connection message from a client. All broadcast messages received 
+	//  afterwards will be relayed to this client. This client will also be a 
+	//  valid target for private messages.
+	//
+	// Method:    addClientConnection
+	// FullName:  server::addClientConnection
+	// Access:    private 
+	// Returns:   void
+	// Parameter: const std::string& inClientUsername
+	// Parameter: const boost::asio::ip::udp::endpoint& inClientEndpoint
+	//--------------------------------------------------------------------------
+	void addClientConnection(
 		const std::string& inClientUsername,
 		const boost::asio::ip::udp::endpoint& inClientEndpoint);
 
-	void removeConnection(
+	//--------------------------------------------------- removeClientConnection
+	// Brief Description
+	//  Removes the client connection. The client will no longer be associated
+	//  with this server.
+	//
+	// Method:    removeClientConnection
+	// FullName:  server::removeClientConnection
+	// Access:    private 
+	// Returns:   void
+	// Parameter: const std::string & inClientUsername
+	//--------------------------------------------------------------------------
+	void removeClientConnection(
 		const std::string& inClientUsername);
 
+	//-------------------------------------------------------- addToMessageQueue
+	// Brief Description
+	//  Helper function. Adds a data message to the queue that will then
+	//  subsequently be relayed as specified.
+	//
+	// Method:    addToMessageQueue
+	// FullName:  server::addToMessageQueue
+	// Access:    private 
+	// Returns:   void
+	// Parameter: const dataMessage & message
+	//--------------------------------------------------------------------------
 	void addToMessageQueue(
 		const dataMessage& message);
 
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::thread_group m_threads;
-	std::vector<connectedClient> m_connectedClients;
+	std::vector<remoteConnection> m_connectedClients;
 	std::queue<dataMessage> m_messageQueue;
 	bool m_terminate;
 };
