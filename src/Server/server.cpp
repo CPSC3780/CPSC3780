@@ -36,6 +36,16 @@ server::server(
 	std::cout << "Listening on port: " << inListeningPort << std::endl;
 };
 
+//------------------------------------------------------------------- destructor
+// Implementation notes:
+//  Delete adjacent server connections
+//------------------------------------------------------------------------------
+server::~server()
+{
+	delete this->m_leftAdjacentServerConnection;
+	delete this->m_rightAdjacentServerConnection;
+};
+
 //-------------------------------------------------------------------------- run
 // Implementation notes:
 //  Creates the various threads for the necessary loops. These threads loop

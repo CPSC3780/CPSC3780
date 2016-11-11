@@ -34,6 +34,17 @@ public:
 		const uint16_t& inListeningPort,
 		boost::asio::io_service& ioService);
 
+	//--------------------------------------------------------------- destructor
+	// Brief Description
+	//  Destructor for the server
+	//
+	// Method:    ~server
+	// FullName:  server::~server
+	// Access:    public 
+	// Returns:   
+	//--------------------------------------------------------------------------
+	~server();
+
 	//---------------------------------------------------------------------- run
 	// Brief Description
 	//  Creates a thread for each major function of the server. These functions
