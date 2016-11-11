@@ -148,7 +148,7 @@ void server::relayUDP()
 		if(currentMessage.viewDestinationID() == "broadcast")
 		{
 			// If broadcast, send to all connected clients except sender
-			for(const connectedClient& targetClient : this->m_connectedClients)
+			for(const remoteConnection& targetClient : this->m_connectedClients)
 			{
 				if(targetClient.viewUsername() != currentMessage.viewSourceID())
 				{
@@ -161,7 +161,7 @@ void server::relayUDP()
 		else
 		{
 			// if not broadcast, it's a private message, send only to the matched client
-			for(const connectedClient& targetClient : this->m_connectedClients)
+			for(const remoteConnection& targetClient : this->m_connectedClients)
 			{
 				if(targetClient.viewUsername() == currentMessage.viewDestinationID())
 				{
@@ -196,7 +196,7 @@ void server::addConnection(
 	const boost::asio::ip::udp::endpoint& inClientEndpoint)
 {
 	this->m_connectedClients.push_back(
-		connectedClient(inClientUsername, inClientEndpoint));
+		remoteConnection(inClientUsername, inClientEndpoint));
 };
 
 //------------------------------------------------------------- removeConnection
@@ -206,7 +206,7 @@ void server::addConnection(
 void server::removeConnection(
 	const std::string& inClientUsername)
 {
-	for(std::vector<connectedClient>::iterator currentClient = this->m_connectedClients.begin(); 
+	for(std::vector<remoteConnection>::iterator currentClient = this->m_connectedClients.begin(); 
 		currentClient != this->m_connectedClients.end(); 
 		++currentClient)
 	{

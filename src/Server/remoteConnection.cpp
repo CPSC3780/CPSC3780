@@ -1,33 +1,33 @@
 // Project
-#include "connectedClient.h"
+#include "remoteConnection.h"
 
 //------------------------------------------------------------------ constructor
 // Implementation notes:
 //  Sets all relevant member variables
 //------------------------------------------------------------------------------
-connectedClient::connectedClient(
-	const std::string inClientUsername, 
-	const boost::asio::ip::udp::endpoint inClientEndpoint)
+remoteConnection::remoteConnection(
+	const std::string inIdentifier,
+	const boost::asio::ip::udp::endpoint inEndpoint)
 {
-	this->m_username = inClientUsername;
-	this->m_endpoint = inClientEndpoint;
+	this->m_identifier = inIdentifier;
+	this->m_endpoint = inEndpoint;
 	this->m_timeOfLastActivity = boost::chrono::system_clock::now();
 };
 
-//----------------------------------------------------------------- viewUsername
+//--------------------------------------------------------------- viewIdentifier
 // Implementation notes:
-//  Returns a const reference to the username
+//  Returns a const reference to the identifier
 //------------------------------------------------------------------------------
-const std::string& connectedClient::viewUsername() const
+const std::string& remoteConnection::viewIdentifier() const
 {
-	return this->m_username;
+	return this->m_identifier;
 };
 
 //----------------------------------------------------------------- viewEndpoint
 // Implementation notes:
 //  Returns a const reference to the endpoint
 //------------------------------------------------------------------------------
-const boost::asio::ip::udp::endpoint& connectedClient::viewEndpoint() const
+const boost::asio::ip::udp::endpoint& remoteConnection::viewEndpoint() const
 {
 	return this->m_endpoint;
 };
@@ -36,7 +36,7 @@ const boost::asio::ip::udp::endpoint& connectedClient::viewEndpoint() const
 // Implementation notes:
 //  Returns a const reference to the timeOfLastActivity
 //------------------------------------------------------------------------------
-const boost::chrono::system_clock::time_point& connectedClient::viewTimeOfLastActivity() const
+const boost::chrono::system_clock::time_point& remoteConnection::viewTimeOfLastActivity() const
 {
 	return this->m_timeOfLastActivity;
 };
@@ -45,7 +45,7 @@ const boost::chrono::system_clock::time_point& connectedClient::viewTimeOfLastAc
 // Implementation notes:
 //  Sets the timeOfLastActivity to now
 //------------------------------------------------------------------------------
-void connectedClient::refreshTimeOfLastActivity()
+void remoteConnection::refreshTimeOfLastActivity()
 {
 	this->m_timeOfLastActivity = boost::chrono::system_clock::now();
 };
