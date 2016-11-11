@@ -12,7 +12,7 @@
 #include <cstdint>
 
 // Project
-#include "./connectedClient.h"
+#include "./remoteConnection.h"
 #include "../Common/dataMessage.h"
 
 class server

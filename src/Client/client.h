@@ -1,9 +1,11 @@
 #pragma once
 
+// STL
+#include <vector>
+
 // Boost
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
-#include <vector>
 
 // Project
 #include "../Common/dataMessage.h"
@@ -21,8 +23,7 @@ public:
 	// #TODO_AH header comment blocks
 	client(
 		const std::string& username,
-		boost::asio::io_service &ioService
-		);
+		boost::asio::io_service &ioService);
 
 	void run();
 
