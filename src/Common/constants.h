@@ -3,11 +3,13 @@
 // STL
 #include <string>
 #include <cstdint>
+#include <cctype>
 #include <string>
 
 namespace constants
 {
 	const uint16_t updateIntervalMilliseconds = 50;
+	const uint16_t syncIntervalMilliseconds = 750;
 
 	const uint16_t listeningPortAlpha = 8080;
 	const uint16_t listeningPortBravo = 8081;
@@ -15,56 +17,57 @@ namespace constants
 	const uint16_t listeningPortDelta = 8083;
 	const uint16_t listeningPortEcho = 8084;
 
-	//---------------------------------------- briefServerIdentifierToPortNumber
+	//------------------------------------- serverIdentifierToPortNumberAndIndex
 	// Brief Description
-	//  Converts a brief server identifier (eg: A, B, C, etc.) to the port 
-	//  number associated with it.
+	//  #TODO fill in description
 	//
-	// Method:    briefServerIdentifierToPortNumber
-	// FullName:  constants::briefServerIdentifierToPortNumber
+	// Method:    serverIdentifierToPortNumberAndIndex
+	// FullName:  constants::serverIdentifierToPortNumberAndIndex
 	// Access:    public static 
-	// Returns:   uint16_t
-	// Parameter: const char & inChar
+	// Returns:   void
+	// Parameter: const char& inChar
+	// Parameter: uint16_t& outListeningPort
+	// Parameter: uint8_t& outServerIndex
 	//--------------------------------------------------------------------------
-	static uint16_t briefServerIdentifierToPortNumber(
-		const char& inChar)
+	static void serverIdentifierToPortNumberAndIndex(
+		const char& inChar,
+		uint16_t& outListeningPort,
+		uint8_t& outServerIndex)
 	{
-		uint16_t listeningPort;
+		const char inCharAsLower(
+			std::tolower(inChar));
 
-		switch(inChar)
+		outServerIndex = static_cast<uint8_t>('a' - inCharAsLower);
+
+		switch(inCharAsLower)
 		{
-			case 'A':
 			case 'a':
 			{
-				listeningPort =
+				outListeningPort =
 					constants::listeningPortAlpha;
 			}
 			break;
-			case 'B':
 			case 'b':
 			{
-				listeningPort =
+				outListeningPort =
 					constants::listeningPortBravo;
 			}
 			break;
-			case 'C':
 			case 'c':
 			{
-				listeningPort =
+				outListeningPort =
 					constants::listeningPortCharlie;
 			}
 			break;
-			case 'D':
 			case 'd':
 			{
-				listeningPort =
+				outListeningPort =
 					constants::listeningPortDelta;
 			}
 			break;
-			case 'E':
 			case 'e':
 			{
-				listeningPort =
+				outListeningPort =
 					constants::listeningPortEcho;
 			}
 			break;
@@ -74,8 +77,6 @@ namespace constants
 			}
 			break;
 		}
-
-		return listeningPort;
 	};
 
 	//--------------------------------------------------- portNumberToServerName
@@ -130,23 +131,26 @@ namespace constants
 		return serverName;
 	};
 
+
 	//-------------------------------------------------------- identifierIsValid
 	// Brief Description
 	//  Used to determine if the user specified server identifier is valid.
-	//  (As per the specification, only A-E are supported. Lower and uppercase
-	//  are supported for ease of use.
+	//  (As per the specification, only a-e are supported. Input can be
+	//  uppercase, as char is converted to lowercase before comparison is done.
 	//
 	// Method:    identifierIsValid
 	// FullName:  constants::identifierIsValid
 	// Access:    public static 
 	// Returns:   bool
-	// Parameter: const char & inIdentifier
+	// Parameter: const char & inChar
 	//--------------------------------------------------------------------------
 	static bool identifierIsValid(
-		const char& inIdentifier)
+		const char& inChar)
 	{
-		return ((inIdentifier >= 'A') && (inIdentifier <= 'E'))
-			|| ((inIdentifier >= 'a') && (inIdentifier <= 'e'));
+		const char inCharAsLower(
+			std::tolower(inChar));
+
+		return (inCharAsLower >= 'a') && (inCharAsLower <= 'e');
 	};
 
 	//--------------------------------------------------------- messageDelimiter
@@ -171,5 +175,7 @@ namespace constants
 		PRIVATE_MESSAGE = 2,
 		DISCONNECT = 3,
 		CHAT = 4,
+		SYNC = 5,
+		PING = 6,
 	};
 }

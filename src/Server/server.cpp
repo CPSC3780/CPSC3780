@@ -17,19 +17,34 @@
 //------------------------------------------------------------------------------
 server::server(
 	const uint16_t& inListeningPort,
+	const uint8_t& inServerIndex,
 	boost::asio::io_service& ioService) :
 	m_UDPsocket(
-		ioService, 
-		boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 
-		inListeningPort))
+		ioService,
+		boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(),
+		inListeningPort)),
+	m_index(inServerIndex),
+	m_terminate(false),
+	m_leftAdjacentServerConnection(nullptr),
+	m_leftAdjacentServerConnectedClients({}),
+	m_rightAdjacentServerConnection(nullptr),
+	m_rightAdjacentServerConnectedClients({})
 {
-	this->m_terminate = false;
-
 	const std::string serverName(
 		constants::portNumberToServerName(inListeningPort));
 
 	std::cout << serverName << " server started." << std::endl;
 	std::cout << "Listening on port: " << inListeningPort << std::endl;
+};
+
+//------------------------------------------------------------------- destructor
+// Implementation notes:
+//  Delete adjacent server connections
+//------------------------------------------------------------------------------
+server::~server()
+{
+	delete this->m_leftAdjacentServerConnection;
+	delete this->m_rightAdjacentServerConnection;
 };
 
 //-------------------------------------------------------------------------- run
@@ -46,6 +61,10 @@ void server::run()
 	// thread for relaying messages with various protocols
 	this->m_threads.create_thread(
 		boost::bind(&server::relayLoop, this));
+
+	// thread for syncing adjacent servers
+	this->m_threads.create_thread(
+		boost::bind(&server::syncAdjacentServers, this));
 
 	this->m_threads.join_all();
 };
@@ -185,6 +204,22 @@ void server::relayUDP()
 void server::relayBluetooth()
 {
 	// #TODO implement Bluetooth relay
+}
+
+//---------------------------------------------------------- syncAdjacentServers
+// Implementation notes:
+//  Syncs the adjacent servers with clients connected to this server.
+//------------------------------------------------------------------------------
+void server::syncAdjacentServers()
+{
+	while(!this->m_terminate)
+	{
+
+		// sleep
+		boost::this_thread::sleep(
+			boost::posix_time::millisec(
+			constants::syncIntervalMilliseconds));
+	}
 };
 
 //---------------------------------------------------------- addClientConnection

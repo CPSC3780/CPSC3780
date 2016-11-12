@@ -96,18 +96,32 @@ const std::string dataMessage::viewMessageTypeAsString() const
 		case constants::MessageType::CONNECTION:
 		{
 			messageTypeAsString = "connection";
+			break;
+		}	
+		case constants::MessageType::PRIVATE_MESSAGE:
+		{
+			messageTypeAsString = "private";
+			break;
 		}
 		case constants::MessageType::DISCONNECT:
 		{
 			messageTypeAsString = "disconnect";
-		}
-		case constants::MessageType::PRIVATE_MESSAGE:
-		{
-			messageTypeAsString = "private";
+			break;
 		}
 		case constants::MessageType::CHAT:
 		{
 			messageTypeAsString = "chat";
+			break;
+		}
+		case constants::MessageType::SYNC:
+		{
+			messageTypeAsString = "sync";
+			break;
+		}
+		case constants::MessageType::PING:
+		{
+			messageTypeAsString = "ping";
+			break;
 		}
 		default:
 		{
