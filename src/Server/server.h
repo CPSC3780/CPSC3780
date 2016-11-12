@@ -18,7 +18,7 @@
 class server
 {
 public:
-
+	
 	//-------------------------------------------------------------- constructor
 	// Brief Description
 	//  Constructor for the server
@@ -28,10 +28,12 @@ public:
 	// Access:    public 
 	// Returns:   
 	// Parameter: const uint16_t& inListeningPort
+	// Parameter: const uint8_t& inServerIndex
 	// Parameter: boost::asio::io_service& ioService
 	//--------------------------------------------------------------------------
 	server(
 		const uint16_t& inListeningPort,
+		const uint8_t& inServerIndex,
 		boost::asio::io_service& ioService);
 
 	//--------------------------------------------------------------- destructor
@@ -105,6 +107,18 @@ private:
 	//--------------------------------------------------------------------------
 	void relayBluetooth();
 
+	//------------------------------------------------------ syncAdjacentServers
+	// Brief Description
+	//  Sends a list of all clients connected to this server to the adjacent
+	//  servers if a connection can be established.
+	//
+	// Method:    syncAdjacentServers
+	// FullName:  server::syncAdjacentServers
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
+	void syncAdjacentServers();
+
 	//------------------------------------------------------ addClientConnection
 	// Brief Description
 	//  Used by the server to add a new client connection when it receives a
@@ -153,6 +167,7 @@ private:
 
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
+	uint8_t m_index;
 	boost::thread_group m_threads;
 
 	bool m_terminate;
