@@ -120,7 +120,7 @@ const std::string dataMessage::viewMessageTypeAsString() const
 		}
 		case constants::MessageType::SYNC_RIGHT:
 		{
-			messageTypeAsString = "sync_right"
+			messageTypeAsString = "sync_right";
 			break;
 		}
 		case constants::MessageType::PING:

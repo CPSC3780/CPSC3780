@@ -253,7 +253,7 @@ void server::receiveClientsFromAdjacentServers(
 				inSyncMessage.viewServerSyncPayload();
 			break;
 		}
-		default
+		default:
 		{
 			// should never make it here, programming error if this happens
 			assert(false);
