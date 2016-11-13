@@ -112,8 +112,8 @@ namespace constants
 	//  The character sequence used to delimit sync messages sent between
 	//  servers.
 	//
-	// Method:    messageDelimiter
-	// FullName:  constants::messageDelimiter
+	// Method:    syncMessageDelimiter
+	// FullName:  constants::syncMessageDelimiter
 	// Access:    public static 
 	// Returns:   std::string
 	//--------------------------------------------------------------------------
