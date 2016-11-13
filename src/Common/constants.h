@@ -107,6 +107,21 @@ namespace constants
 		return "/?";
 	};
 
+	//----------------------------------------------------- syncMessageDelimiter
+	// Brief Description
+	//  The character sequence used to delimit sync messages sent between
+	//  servers.
+	//
+	// Method:    messageDelimiter
+	// FullName:  constants::messageDelimiter
+	// Access:    public static 
+	// Returns:   std::string
+	//--------------------------------------------------------------------------
+	static inline std::string syncMessageDelimiter()
+	{
+		return "/!";
+	};
+
 	enum MessageType
 	{
 		UNDEFINED = 0,
