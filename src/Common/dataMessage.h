@@ -129,6 +129,32 @@ public:
 	//--------------------------------------------------------------------------
 	const std::string viewMessageTypeAsString() const;
 
+	//----------------------------------------------------- setServerSyncPayload
+	// Brief Description
+	//  Sets the server sync payload as a string with delimiters different from
+	//  the message delimiters
+	//
+	// Method:    setServerSyncPayload
+	// FullName:  dataMessage::setServerSyncPayload
+	// Access:    public 
+	// Returns:   void
+	// Parameter: const std::vector<std::string>& inSyncPayload
+	//--------------------------------------------------------------------------
+	void setServerSyncPayload(
+		const std::vector<std::string>& inSyncPayload);
+
+	//---------------------------------------------------- viewServerSyncPayload
+	// Brief Description
+	//  Extracts a vector of strings representing the clients on the adjacent
+	//  server from the string payload.
+	//
+	// Method:    viewServerSyncPayload
+	// FullName:  dataMessage::viewServerSyncPayload
+	// Access:    public 
+	// Returns:   std::vector<std::string>
+	//--------------------------------------------------------------------------
+	std::vector<std::string> viewServerSyncPayload() const;
+
 	//------------------------------------------------------------- asCharVector
 	// Brief Description
 	//  Returns a vector of chars that represents this dataMessage object. This

@@ -64,7 +64,7 @@ void server::run()
 
 	// thread for syncing adjacent servers
 	this->m_threads.create_thread(
-		boost::bind(&server::syncAdjacentServers, this));
+		boost::bind(&server::sendClientsToAdjacentServers, this));
 
 	this->m_threads.join_all();
 };
@@ -124,6 +124,13 @@ void server::listenLoop()
 			case constants::MessageType::PRIVATE_MESSAGE:
 			{
 				// Do nothing
+				break;
+			}
+			case constants::MessageType::SYNC_RIGHT:
+			case constants::MessageType::SYNC_LEFT:
+			{
+				this->receiveClientsFromAdjacentServers(
+					message);
 				break;
 			}
 			default:
@@ -206,19 +213,53 @@ void server::relayBluetooth()
 	// #TODO implement Bluetooth relay
 }
 
-//---------------------------------------------------------- syncAdjacentServers
+//------------------------------------------------- sendClientsToAdjacentServers
 // Implementation notes:
-//  Syncs the adjacent servers with clients connected to this server.
+//  Sends the list of clients connected to this server to the adjacent servers.
 //------------------------------------------------------------------------------
-void server::syncAdjacentServers()
+void server::sendClientsToAdjacentServers()
 {
 	while(!this->m_terminate)
 	{
+		// left adjacent server (if it exists)
+
+		// right adjacent server (if it exists)
 
 		// sleep
 		boost::this_thread::sleep(
 			boost::posix_time::millisec(
 			constants::syncIntervalMilliseconds));
+	}
+}
+
+//------------------------------------------------- sendClientsToAdjacentServers
+// Implementation notes:
+//  Receives the list of clients from an adjacent server and stores them.
+//------------------------------------------------------------------------------
+void server::receiveClientsFromAdjacentServers(
+	const dataMessage& inSyncMessage)
+{
+	switch(inSyncMessage.viewMessageType())
+	{
+		case constants::MessageType::SYNC_RIGHT:
+		{
+			this->m_rightAdjacentServerConnectedClients =
+				inSyncMessage.viewServerSyncPayload();
+			break;
+		}
+		case constants::MessageType::SYNC_LEFT:
+		{
+			this->m_leftAdjacentServerConnectedClients =
+				inSyncMessage.viewServerSyncPayload();
+			break;
+		}
+		default
+		{
+			// should never make it here, programming error if this happens
+			assert(false);
+			break;
+		}
+
 	}
 };
 

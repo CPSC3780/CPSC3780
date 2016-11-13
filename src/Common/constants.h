@@ -114,7 +114,8 @@ namespace constants
 		PRIVATE_MESSAGE = 2,
 		DISCONNECT = 3,
 		CHAT = 4,
-		SYNC = 5,
-		PING = 6,
+		SYNC_LEFT = 5,
+		SYNC_RIGHT = 6,
+		PING = 7,
 	};
 }
