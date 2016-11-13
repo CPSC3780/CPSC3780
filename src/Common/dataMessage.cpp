@@ -159,6 +159,16 @@ const constants::MessageType dataMessage::stringToMessageType(
 		return constants::MessageType::CHAT;
 	}
 
+	if(type == "sync")
+	{
+		return constants::SYNC;
+	}
+
+	if(type == "ping")
+	{
+		return constants::PING;
+	}
+
 	assert(false);
 
 	return constants::MessageType::UNDEFINED;

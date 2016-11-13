@@ -29,13 +29,11 @@ int main()
 			}
 		} while (!identifierIsValid);
 
-		uint16_t listeningPort;
-		uint8_t serverIndex;
-		
-		constants::serverIdentifierToPortNumberAndIndex(
-			identifier,
-			listeningPort,
-			serverIndex);
+		const uint8_t serverIndex(
+			constants::charToServerIndex(identifier));
+
+		const uint16_t listeningPort(
+			constants::serverIndexToListeningPort(serverIndex));
 
 		boost::asio::io_service ioService;
 

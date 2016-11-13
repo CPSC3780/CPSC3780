@@ -31,7 +31,7 @@ server::server(
 	m_rightAdjacentServerConnectedClients({})
 {
 	const std::string serverName(
-		constants::portNumberToServerName(inListeningPort));
+		constants::serverIndexToServerName(inServerIndex));
 
 	std::cout << serverName << " server started." << std::endl;
 	std::cout << "Listening on port: " << inListeningPort << std::endl;
