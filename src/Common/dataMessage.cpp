@@ -113,9 +113,14 @@ const std::string dataMessage::viewMessageTypeAsString() const
 			messageTypeAsString = "chat";
 			break;
 		}
-		case constants::MessageType::SYNC:
+		case constants::MessageType::SYNC_LEFT:
 		{
-			messageTypeAsString = "sync";
+			messageTypeAsString = "sync_left";
+			break;
+		}
+		case constants::MessageType::SYNC_RIGHT:
+		{
+			messageTypeAsString = "sync_right";
 			break;
 		}
 		case constants::MessageType::PING:
@@ -130,6 +135,25 @@ const std::string dataMessage::viewMessageTypeAsString() const
 	}
 
 	return messageTypeAsString;
+}
+
+//--------------------------------------------------------- setServerSyncPayload
+// Implementation notes:
+//  Converts the string to the corresponding messageType enum
+//------------------------------------------------------------------------------
+void dataMessage::setServerSyncPayload(
+	const std::vector<std::string>& inSyncPayload)
+{
+
+};
+
+//--------------------------------------------------------- viewServerSyncPayload
+// Implementation notes:
+//  Converts the string to the corresponding messageType enum
+//------------------------------------------------------------------------------
+std::vector<std::string> dataMessage::viewServerSyncPayload() const
+{
+	return std::vector<std::string>();
 };
 
 //---------------------------------------------------------- stringToMessageType
@@ -157,6 +181,21 @@ const constants::MessageType dataMessage::stringToMessageType(
 	if(type == "chat")
 	{
 		return constants::MessageType::CHAT;
+	}
+
+	if(type == "sync_right")
+	{
+		return constants::SYNC_RIGHT;
+	}
+
+	if(type == "sync_left")
+	{
+		return constants::SYNC_LEFT;
+	}
+
+	if(type == "ping")
+	{
+		return constants::PING;
 	}
 
 	assert(false);

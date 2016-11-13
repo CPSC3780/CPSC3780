@@ -107,17 +107,31 @@ private:
 	//--------------------------------------------------------------------------
 	void relayBluetooth();
 
-	//------------------------------------------------------ syncAdjacentServers
+	//--------------------------------------------- sendClientsToAdjacentServers
 	// Brief Description
 	//  Sends a list of all clients connected to this server to the adjacent
 	//  servers if a connection can be established.
 	//
-	// Method:    syncAdjacentServers
-	// FullName:  server::syncAdjacentServers
+	// Method:    sendClientsToAdjacentServers
+	// FullName:  server::sendClientsToAdjacentServers
 	// Access:    private 
 	// Returns:   void
 	//--------------------------------------------------------------------------
-	void syncAdjacentServers();
+	void sendClientsToAdjacentServers();
+
+	//---------------------------------------- receiveClientsFromAdjacentServers
+	// Brief Description
+	//  Receives the sync sent from an adjacent server and populates the 
+	//  appropriate list of usernames via the data message.
+	//
+	// Method:    receiveClientsFromAdjacentServers
+	// FullName:  server::receiveClientsFromAdjacentServers
+	// Access:    private 
+	// Returns:   void
+	// Parameter: const dataMessage& inSyncMessage
+	//--------------------------------------------------------------------------
+	void receiveClientsFromAdjacentServers(
+		const dataMessage& inSyncMessage);
 
 	//------------------------------------------------------ addClientConnection
 	// Brief Description

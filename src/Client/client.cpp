@@ -18,9 +18,11 @@
 //------------------------------------------------------------------------------
 client::client(
 	const std::string& inUsername,
+	const uint16_t& inServerPort,
 	boost::asio::io_service& ioService) :
 	m_resolver(ioService),
-	m_UDPsocket(ioService)
+	m_UDPsocket(ioService),
+	m_serverPort(inServerPort)
 {
 	this->m_username = inUsername;
 	this->m_terminate = false;
@@ -29,13 +31,14 @@ client::client(
 		client::protocol::UDP;
 
 	// #TODO replace these with dynamic IP stuff
-	const std::string host = "localhost";
-	const std::string port = "8080";
+	const std::string serverAddress = "localhost";
+	const std::string serverPort =
+		std::to_string(inServerPort);
 
 	boost::asio::ip::udp::resolver::query serverQuery(
 		boost::asio::ip::udp::v4(),
-		host,
-		port);
+		serverAddress,
+		serverPort);
 
 	this->m_serverEndPoint =
 		*this->m_resolver.resolve(serverQuery);

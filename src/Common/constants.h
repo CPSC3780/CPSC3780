@@ -5,132 +5,71 @@
 #include <cstdint>
 #include <cctype>
 #include <string>
+#include <vector>
 
 namespace constants
 {
 	const uint16_t updateIntervalMilliseconds = 50;
 	const uint16_t syncIntervalMilliseconds = 750;
 
-	const uint16_t listeningPortAlpha = 8080;
-	const uint16_t listeningPortBravo = 8081;
-	const uint16_t listeningPortCharlie = 8082;
-	const uint16_t listeningPortDelta = 8083;
-	const uint16_t listeningPortEcho = 8084;
+	const std::vector<uint16_t> serverListeningPorts(
+	{8080, 8081, 8082, 8083, 8084});
 
-	//------------------------------------- serverIdentifierToPortNumberAndIndex
+	const std::vector<std::string> serverNames(
+	{"Alpha", "Bravo", "Charlie", "Delta", "Echo"});
+
+	//-------------------------------------------------------- charToServerIndex
 	// Brief Description
-	//  #TODO fill in description
+	//  Converts the input char to the server index. The server index can later
+	//  be used to determine the associated port via indexing at
+	//  serverListeningPorts[index]
 	//
-	// Method:    serverIdentifierToPortNumberAndIndex
-	// FullName:  constants::serverIdentifierToPortNumberAndIndex
+	// Method:    charToServerIndex
+	// FullName:  constants::charToServerIndex
 	// Access:    public static 
-	// Returns:   void
+	// Returns:   uint8_t
 	// Parameter: const char& inChar
-	// Parameter: uint16_t& outListeningPort
-	// Parameter: uint8_t& outServerIndex
 	//--------------------------------------------------------------------------
-	static void serverIdentifierToPortNumberAndIndex(
-		const char& inChar,
-		uint16_t& outListeningPort,
-		uint8_t& outServerIndex)
+	static uint8_t charToServerIndex(
+		const char& inChar)
 	{
 		const char inCharAsLower(
 			std::tolower(inChar));
 
-		outServerIndex = static_cast<uint8_t>('a' - inCharAsLower);
-
-		switch(inCharAsLower)
-		{
-			case 'a':
-			{
-				outListeningPort =
-					constants::listeningPortAlpha;
-			}
-			break;
-			case 'b':
-			{
-				outListeningPort =
-					constants::listeningPortBravo;
-			}
-			break;
-			case 'c':
-			{
-				outListeningPort =
-					constants::listeningPortCharlie;
-			}
-			break;
-			case 'd':
-			{
-				outListeningPort =
-					constants::listeningPortDelta;
-			}
-			break;
-			case 'e':
-			{
-				outListeningPort =
-					constants::listeningPortEcho;
-			}
-			break;
-			default:
-			{
-				assert(false);
-			}
-			break;
-		}
+		return static_cast<uint8_t>(inCharAsLower - 'a');
 	};
 
-	//--------------------------------------------------- portNumberToServerName
+	//----------------------------------------------- serverIndexToListeningPort
 	// Brief Description
-	//  Returns the name of the server associated with the given port number.
+	//  Returns the listening port associated with a server index.
+	//
+	// Method:    serverIndexToListeningPort
+	// FullName:  constants::serverIndexToListeningPort
+	// Access:    public static 
+	// Returns:   uint16_t
+	// Parameter: const uint8_t& inServerIndex
+	//--------------------------------------------------------------------------
+	static uint16_t serverIndexToListeningPort(
+		const uint8_t& inServerIndex)
+	{
+		return constants::serverListeningPorts[inServerIndex];
+	};
+
+	//-------------------------------------------------- serverIndexToServerName
+	// Brief Description
+	//  Returns the name of the server associated with the given server index.
 	//
 	// Method:    portNumberToServerName
 	// FullName:  constants::portNumberToServerName
 	// Access:    public static 
 	// Returns:   std::string
-	// Parameter: const uint16_t inPort
+	// Parameter: const uint8_t& inServerIndex
 	//--------------------------------------------------------------------------
-	static std::string portNumberToServerName(
-		const uint16_t& inPort)
+	static std::string serverIndexToServerName(
+		const uint8_t& inServerIndex)
 	{
-		std::string serverName;
-
-		switch(inPort)
-		{
-			case constants::listeningPortAlpha:
-			{
-				serverName = "Alpha";
-			}
-			break;
-			case constants::listeningPortBravo:
-			{
-				serverName = "Bravo";
-			}
-			break;
-			case constants::listeningPortCharlie:
-			{
-				serverName = "Charlie";
-			}
-			break;
-			case constants::listeningPortDelta:
-			{
-				serverName = "Delta";
-			}
-			break;
-			case constants::listeningPortEcho:
-			{
-				serverName = "Echo";
-			}
-			break;
-			default:
-			{
-				assert(false);
-			}
-			break;
-		}
-
-		return serverName;
+		return constants::serverNames[inServerIndex];;
 	};
-
 
 	//-------------------------------------------------------- identifierIsValid
 	// Brief Description
@@ -168,6 +107,21 @@ namespace constants
 		return "/?";
 	};
 
+	//----------------------------------------------------- syncMessageDelimiter
+	// Brief Description
+	//  The character sequence used to delimit sync messages sent between
+	//  servers.
+	//
+	// Method:    syncMessageDelimiter
+	// FullName:  constants::syncMessageDelimiter
+	// Access:    public static 
+	// Returns:   std::string
+	//--------------------------------------------------------------------------
+	static inline std::string syncMessageDelimiter()
+	{
+		return "/!";
+	};
+
 	enum MessageType
 	{
 		UNDEFINED = 0,
@@ -175,7 +129,8 @@ namespace constants
 		PRIVATE_MESSAGE = 2,
 		DISCONNECT = 3,
 		CHAT = 4,
-		SYNC = 5,
-		PING = 6,
+		SYNC_LEFT = 5,
+		SYNC_RIGHT = 6,
+		PING = 7,
 	};
 }
