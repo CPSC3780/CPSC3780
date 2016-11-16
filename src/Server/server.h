@@ -28,12 +28,12 @@ public:
 	// Access:    public 
 	// Returns:   
 	// Parameter: const uint16_t& inListeningPort
-	// Parameter: const uint8_t& inServerIndex
+	// Parameter: const int8_t& inServerIndex
 	// Parameter: boost::asio::io_service& ioService
 	//--------------------------------------------------------------------------
 	server(
 		const uint16_t& inListeningPort,
-		const uint8_t& inServerIndex,
+		const int8_t& inServerIndex,
 		boost::asio::io_service& ioService);
 
 	//--------------------------------------------------------------- destructor
@@ -181,7 +181,7 @@ private:
 
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
-	uint8_t m_index;
+	int8_t m_index;
 	boost::thread_group m_threads;
 
 	bool m_terminate;

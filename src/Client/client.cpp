@@ -19,19 +19,23 @@
 client::client(
 	const std::string& inUsername,
 	const uint16_t& inServerPort,
+	const int8_t& inServerIndex,
 	boost::asio::io_service& ioService) :
 	m_resolver(ioService),
 	m_UDPsocket(ioService),
 	m_serverPort(inServerPort)
 {
 	this->m_username = inUsername;
+	this->m_serverIndex = inServerIndex;
 	this->m_terminate = false;
 
 	this->m_activeProtocol =
 		client::protocol::UDP;
 
-	// #TODO replace these with dynamic IP stuff
-	const std::string serverAddress = "localhost";
+	// #TODO can be hardcoded to lan ip, should make this dynamic
+	const std::string serverAddress = 
+		constants::serverHostName(this->m_serverIndex);
+
 	const std::string serverPort =
 		std::to_string(inServerPort);
 

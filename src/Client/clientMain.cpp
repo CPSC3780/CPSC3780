@@ -28,6 +28,11 @@ int main()
 			}
 		} while(!identifierIsValid);
 
+		std::string ignore("");
+		
+		// necessary since last was cin next is getline
+		std::getline(std::cin, ignore);
+
 		const uint8_t serverIndex(
 			constants::charToServerIndex(identifier));
 
@@ -42,6 +47,7 @@ int main()
 		client clientInstance(
 			username, 
 			listeningPort,
+			serverIndex,
 			ioService);
 
 		clientInstance.run();

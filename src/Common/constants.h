@@ -15,8 +15,18 @@ namespace constants
 	const std::vector<uint16_t> serverListeningPorts(
 	{8080, 8081, 8082, 8083, 8084});
 
+	const size_t highestServerIndex = 
+		(constants::serverListeningPorts.size() - 1);
+
 	const std::vector<std::string> serverNames(
 	{"Alpha", "Bravo", "Charlie", "Delta", "Echo"});
+
+	static std::string serverHostName(
+		const uint8_t& inServerIndex)
+	{
+		return constants::serverNames[inServerIndex]
+			+ "ServerCPSC3780";
+	}
 
 	//-------------------------------------------------------- charToServerIndex
 	// Brief Description
