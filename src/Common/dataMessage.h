@@ -10,6 +10,7 @@
 
 // Project
 #include "../Common/constants.h"
+#include "../Common/remoteConnection.h"
 
 class dataMessage
 {
@@ -32,6 +33,26 @@ public:
 	//--------------------------------------------------------------------------
 	dataMessage(
 		const std::string& inPayload,
+		const std::string& inSourceID,
+		const std::string& inDestinationID,
+		const constants::MessageType& inType);
+
+	//-------------------------------------------------------------- constructor
+	// Brief Description
+	//  Constructor for the data message. Used by servers to send sync messages
+	//  to each other.
+	//
+	// Method:    dataMessage
+	// FullName:  dataMessage::dataMessage
+	// Access:    public 
+	// Returns:   
+	// Parameter: std::vector<remoteConnection>& inServerSyncPayload
+	// Parameter: const std::string& inSourceID
+	// Parameter: const std::string& inDestinationID
+	// Parameter: const constants::MessageType& inType
+	//--------------------------------------------------------------------------
+	dataMessage(
+		const std::vector<remoteConnection>& inServerSyncPayload,
 		const std::string& inSourceID,
 		const std::string& inDestinationID,
 		const constants::MessageType& inType);
@@ -129,19 +150,19 @@ public:
 	//--------------------------------------------------------------------------
 	const std::string viewMessageTypeAsString() const;
 
-	//----------------------------------------------------- setServerSyncPayload
+	//-------------------------------------------------- createServerSyncPayload
 	// Brief Description
-	//  Sets the server sync payload as a string with delimiters different from
-	//  the message delimiters
+	//  Creates the server sync payload as a string with delimiters different 
+	//  from the message delimiters
 	//
-	// Method:    setServerSyncPayload
-	// FullName:  dataMessage::setServerSyncPayload
+	// Method:    createServerSyncPayload
+	// FullName:  dataMessage::createServerSyncPayload
 	// Access:    public 
 	// Returns:   void
-	// Parameter: const std::vector<std::string>& inSyncPayload
+	// Parameter: const std::vector<remoteConnection>& inServerSyncPayload
 	//--------------------------------------------------------------------------
-	void setServerSyncPayload(
-		const std::vector<std::string>& inSyncPayload);
+	static std::string createServerSyncPayload(
+		const std::vector<remoteConnection>& inServerSyncPayload);
 
 	//---------------------------------------------------- viewServerSyncPayload
 	// Brief Description
