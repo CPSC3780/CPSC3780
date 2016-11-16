@@ -12,7 +12,7 @@
 #include <cstdint>
 
 // Project
-#include "./remoteConnection.h"
+#include "../Common/remoteConnection.h"
 #include "../Common/dataMessage.h"
 
 class server
@@ -181,6 +181,8 @@ private:
 
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
+	boost::asio::ip::udp::resolver m_resolver;
+	boost::asio::io_service* m_ioService;
 	int8_t m_index;
 	boost::thread_group m_threads;
 

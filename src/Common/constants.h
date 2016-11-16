@@ -10,7 +10,7 @@
 namespace constants
 {
 	const uint16_t updateIntervalMilliseconds = 50;
-	const uint16_t syncIntervalMilliseconds = 750;
+	const uint16_t syncIntervalMilliseconds = 2000;
 
 	const std::vector<uint16_t> serverListeningPorts(
 	{8080, 8081, 8082, 8083, 8084});
@@ -117,19 +117,19 @@ namespace constants
 		return "/?";
 	};
 
-	//----------------------------------------------------- syncMessageDelimiter
+	//-------------------------------------------------- syncIdentifierDelimiter
 	// Brief Description
-	//  The character sequence used to delimit sync messages sent between
-	//  servers.
+	//  The character used to delimit identifiers in sync messages
+	//  sent between servers.
 	//
-	// Method:    syncMessageDelimiter
-	// FullName:  constants::syncMessageDelimiter
+	// Method:    syncIdentifierDelimiter
+	// FullName:  constants::syncIdentifierDelimiter
 	// Access:    public static 
-	// Returns:   std::string
+	// Returns:   char
 	//--------------------------------------------------------------------------
-	static inline std::string syncMessageDelimiter()
+	static inline char syncIdentifierDelimiter()
 	{
-		return "/!";
+		return ',';
 	};
 
 	enum MessageType

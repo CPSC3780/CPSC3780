@@ -24,6 +24,22 @@ dataMessage::dataMessage(
 
 //------------------------------------------------------------------ constructor
 // Implementation notes:
+//  Used to create a data message object to send
+//------------------------------------------------------------------------------
+dataMessage::dataMessage(
+	const std::vector<remoteConnection>& inServerSyncPayload,
+	const std::string& inSourceID,
+	const std::string& inDestinationID = "broadcast",
+	const constants::MessageType& inMessageType = constants::MessageType::CHAT)
+{
+	this->m_payload = dataMessage::createServerSyncPayload(inServerSyncPayload);
+	this->m_sourceIdentifier = inSourceID;
+	this->m_destinationIdentifier = inDestinationID;
+	this->m_messageType = inMessageType;
+};
+
+//------------------------------------------------------------------ constructor
+// Implementation notes:
 //  Used to create a data message object from a received vector<char>
 //------------------------------------------------------------------------------
 dataMessage::dataMessage(
@@ -137,14 +153,22 @@ const std::string dataMessage::viewMessageTypeAsString() const
 	return messageTypeAsString;
 }
 
-//--------------------------------------------------------- setServerSyncPayload
+//------------------------------------------------------ createServerSyncPayload
 // Implementation notes:
-//  Converts the string to the corresponding messageType enum
+//  Creates a string containing all the client names connected to the server.
 //------------------------------------------------------------------------------
-void dataMessage::setServerSyncPayload(
-	const std::vector<std::string>& inSyncPayload)
+std::string dataMessage::createServerSyncPayload(
+	const std::vector<remoteConnection>& inSyncPayload)
 {
+	std::string constructedPayload("");
 
+	for(const remoteConnection& currentConnection : inSyncPayload)
+	{
+		constructedPayload += currentConnection.viewIdentifier() 
+			+ constants::syncIdentifierDelimiter();
+	}
+
+	return constructedPayload;
 };
 
 //--------------------------------------------------------- viewServerSyncPayload
@@ -153,7 +177,34 @@ void dataMessage::setServerSyncPayload(
 //------------------------------------------------------------------------------
 std::vector<std::string> dataMessage::viewServerSyncPayload() const
 {
-	return std::vector<std::string>();
+	std::vector<std::string> outServerSyncPayload;
+
+	std::string foundClient("");
+
+	for(uint64_t i = 0; i < this->m_payload.size(); i++)
+	{
+		if(this->m_payload[i] != constants::syncIdentifierDelimiter())
+		{
+			foundClient += this->m_payload[i];
+		}
+		else
+		{
+			outServerSyncPayload.push_back(foundClient);
+			foundClient = "";
+		}
+	}
+
+	// #TODO_AH remove test code
+	std::cout << "new sync clients: ";
+	for(int i = 0; i < outServerSyncPayload.size(); i++)
+	{
+		std::cout << outServerSyncPayload[i] << " ";
+	}
+	std::cout << std::endl;
+
+	std::cout << "sync list size: " << outServerSyncPayload.size() << std::endl;
+
+	return outServerSyncPayload;
 };
 
 //---------------------------------------------------------- stringToMessageType
