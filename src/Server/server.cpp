@@ -225,6 +225,17 @@ void server::sendClientsToAdjacentServers()
 {
 	while(!this->m_terminate)
 	{
+		// sleep
+		boost::this_thread::sleep(
+			boost::posix_time::millisec(
+			constants::syncIntervalMilliseconds));
+
+		// sleep again if no connections
+		if(this->m_connectedClients.size() <= 0)
+		{
+			continue;
+		}
+
 		// left adjacent server (if it exists)
 		if((this->m_index - 1) >= 0)
 		{
@@ -326,11 +337,6 @@ void server::sendClientsToAdjacentServers()
 		{
 			// Do nothing, no right adjacent server
 		}
-
-		// sleep
-		boost::this_thread::sleep(
-			boost::posix_time::millisec(
-			constants::syncIntervalMilliseconds));
 	}
 }
 
