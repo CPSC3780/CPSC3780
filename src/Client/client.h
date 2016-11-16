@@ -32,11 +32,13 @@ public:
 	// Returns:   
 	// Parameter: const std::string& username
 	// Parameter: const uint16_t& inServerPort
+	// Parameter: const int8_t& inServerIndex
 	// Parameter: boost::asio::io_service& ioService
 	//--------------------------------------------------------------------------
 	client(
 		const std::string& username,
 		const uint16_t& inServerPort,
+		const int8_t& inServerIndex,
 		boost::asio::io_service &ioService);
 
 	//---------------------------------------------------------------------- run
@@ -135,4 +137,5 @@ private:
 	bool m_terminate;
 	std::string m_username;
 	uint16_t m_serverPort;
+	int8_t m_serverIndex;
 };

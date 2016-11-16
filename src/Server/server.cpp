@@ -17,7 +17,7 @@
 //------------------------------------------------------------------------------
 server::server(
 	const uint16_t& inListeningPort,
-	const uint8_t& inServerIndex,
+	const int8_t& inServerIndex,
 	boost::asio::io_service& ioService) :
 	m_UDPsocket(
 		ioService,
@@ -222,8 +222,24 @@ void server::sendClientsToAdjacentServers()
 	while(!this->m_terminate)
 	{
 		// left adjacent server (if it exists)
+		if((this->m_index - 1) >= 0)
+		{
+
+		}
+		else
+		{
+			// Do nothing, no left adjacent server
+		}
 
 		// right adjacent server (if it exists)
+		if((this->m_index + 1) <= constants::highestServerIndex)
+		{
+
+		}
+		else
+		{
+			// Do nothing, no right adjacent server
+		}
 
 		// sleep
 		boost::this_thread::sleep(
