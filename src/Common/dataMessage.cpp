@@ -160,8 +160,15 @@ const std::string dataMessage::viewMessageTypeAsString() const
 std::string dataMessage::createServerSyncPayload(
 	const std::vector<remoteConnection>& inSyncPayload)
 {
-	// #TODO_AH implement
-	return "";
+	std::string constructedPayload("");
+
+	for(const remoteConnection& currentConnection : inSyncPayload)
+	{
+		constructedPayload += currentConnection.viewIdentifier() 
+			+ constants::syncIdentifierDelimiter();
+	}
+
+	return constructedPayload;
 };
 
 //--------------------------------------------------------- viewServerSyncPayload
@@ -170,7 +177,34 @@ std::string dataMessage::createServerSyncPayload(
 //------------------------------------------------------------------------------
 std::vector<std::string> dataMessage::viewServerSyncPayload() const
 {
-	return std::vector<std::string>();
+	std::vector<std::string> outServerSyncPayload;
+
+	std::string foundClient("");
+
+	for(uint64_t i = 0; i < this->m_payload.size(); i++)
+	{
+		if(this->m_payload[i] != constants::syncIdentifierDelimiter())
+		{
+			foundClient += this->m_payload[i];
+		}
+		else
+		{
+			outServerSyncPayload.push_back(foundClient);
+			foundClient = "";
+		}
+	}
+
+	// #TODO_AH remove test code
+	std::cout << "new sync clients: ";
+	for(int i = 0; i < outServerSyncPayload.size(); i++)
+	{
+		std::cout << outServerSyncPayload[i] << " ";
+	}
+	std::cout << std::endl;
+
+	std::cout << "sync list size: " << outServerSyncPayload.size() << std::endl;
+
+	return outServerSyncPayload;
 };
 
 //---------------------------------------------------------- stringToMessageType

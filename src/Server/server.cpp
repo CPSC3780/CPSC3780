@@ -133,6 +133,7 @@ void server::listenLoop()
 			{
 				this->receiveClientsFromAdjacentServers(
 					message);
+				continue;
 				break;
 			}
 			default:
@@ -189,6 +190,8 @@ void server::relayUDP()
 		else
 		{
 			// if not broadcast, it's a private message, send only to the matched client
+
+			// check list of directly connect clients first
 			for(const remoteConnection& targetClient : this->m_connectedClients)
 			{
 				if(targetClient.viewIdentifier() == currentMessage.viewDestinationIdentifier())
@@ -199,6 +202,71 @@ void server::relayUDP()
 					break;
 				}
 			}
+
+			// check list of left adjacent server
+			for(const std::string targetClientIdentifier : this->m_leftAdjacentServerConnectedClients)
+			{
+				if(targetClientIdentifier == currentMessage.viewDestinationIdentifier())
+				{
+					// #TODO_AH make this better, repeat of sync code since connections aren't maintained
+					const int8_t leftAdjacentServerIndex =
+						this->m_index - 1;
+
+					const std::string leftAdjacentServerAddress =
+						constants::serverHostName(leftAdjacentServerIndex);
+
+					const std::string leftAdjacentServerPort =
+						std::to_string(
+							constants::serverListeningPorts[leftAdjacentServerIndex]);
+
+					boost::asio::ip::udp::resolver::query serverQuery(
+						boost::asio::ip::udp::v4(),
+						leftAdjacentServerAddress,
+						leftAdjacentServerPort);
+
+					boost::asio::ip::udp::endpoint leftAdjacentServerEndPoint =
+						*this->m_resolver.resolve(serverQuery);
+
+					this->m_UDPsocket.send_to(
+						boost::asio::buffer(currentMessage.asCharVector()),
+						leftAdjacentServerEndPoint, 0, ignoredError);
+					break;
+				}
+			}
+
+			// check list of right adjacent server
+			for(const std::string targetClientIdentifier : this->m_rightAdjacentServerConnectedClients)
+			{
+				if(targetClientIdentifier == currentMessage.viewDestinationIdentifier())
+				{
+					// #TODO_AH make this better, repeat of sync code since connections aren't maintained
+					const int8_t rightAdjacentServerIndex =
+						this->m_index + 1;
+
+					const std::string rightAdjacentServerAddress =
+						constants::serverHostName(rightAdjacentServerIndex);
+
+					const std::string rightAdjacentServerPort =
+						std::to_string(
+							constants::serverListeningPorts[rightAdjacentServerIndex]);
+
+					boost::asio::ip::udp::resolver::query serverQuery(
+						boost::asio::ip::udp::v4(),
+						rightAdjacentServerAddress,
+						rightAdjacentServerPort);
+
+					boost::asio::ip::udp::endpoint rightAdjacentServerEndPoint =
+						*this->m_resolver.resolve(serverQuery);
+
+					this->m_UDPsocket.send_to(
+						boost::asio::buffer(currentMessage.asCharVector()),
+						rightAdjacentServerEndPoint, 0, ignoredError);
+					break;
+				}
+			}
+
+			std::cout << "Message dropped. Client \"" << currentMessage.viewDestinationIdentifier() << "\" was not found." << std::endl;
+			// #TODO_AH send message back to client that sent dropped message indicating them of this.
 		}
 
 		// Message sent, remove from queue
@@ -225,17 +293,6 @@ void server::sendClientsToAdjacentServers()
 {
 	while(!this->m_terminate)
 	{
-		// sleep
-		boost::this_thread::sleep(
-			boost::posix_time::millisec(
-			constants::syncIntervalMilliseconds));
-
-		// sleep again if no connections
-		if(this->m_connectedClients.size() <= 0)
-		{
-			continue;
-		}
-
 		// left adjacent server (if it exists)
 		if((this->m_index - 1) >= 0)
 		{
@@ -332,6 +389,11 @@ void server::sendClientsToAdjacentServers()
 			{
 				// Do nothing, adjacent server is offline
 			}
+
+			// sleep
+			boost::this_thread::sleep(
+				boost::posix_time::millisec(
+				constants::syncIntervalMilliseconds));
 		}
 		else
 		{

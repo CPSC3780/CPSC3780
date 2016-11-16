@@ -223,13 +223,51 @@ void client::receiveOverUDP()
 
 		if(incomingMessageLength > 0)
 		{
-			if((message.viewMessageTypeAsString() != "connection")
-				&&(message.viewMessageTypeAsString() != "disconnect"))
-			{
-				std::cout << message.viewSourceIdentifier() << " says: ";
-			}
+			constants::MessageType messageType = 
+				message.viewMessageType();
 
-			std::cout << message.viewPayload() << std::endl;
+			switch(messageType)
+			{
+				case constants::MessageType::CONNECTION:
+				{
+					// Do nothing
+					break;
+				}
+				case constants::MessageType::PRIVATE_MESSAGE:
+				{
+					std::cout << "Private Message: " << message.viewSourceIdentifier()
+						<< " says: " << message.viewPayload() << std::endl;
+					break;
+				}
+				case constants::MessageType::DISCONNECT:
+				{
+					// Do nothing
+					break;
+				}
+				case constants::MessageType::CHAT:
+				{
+					std::cout << message.viewSourceIdentifier() << " says: "
+						<< message.viewPayload() << std::endl;
+					break;
+				}
+				case constants::MessageType::SYNC_LEFT:
+				case constants::MessageType::SYNC_RIGHT:
+				{
+					// Syncs are only used by servers, never by clients
+					assert(false);
+					break;
+				}
+				case constants::MessageType::PING:
+				{
+					// Do nothing
+					break;
+				}
+				default:
+				{
+					// Programming error, unexpected type
+					assert(false);
+				}
+			}
 		}
 
 		// sleep
