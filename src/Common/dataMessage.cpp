@@ -181,7 +181,7 @@ std::vector<std::string> dataMessage::viewServerSyncPayload() const
 
 	std::string foundClient("");
 
-	for(uint64_t i = 0; i < this->m_payload.size(); i++)
+	for(size_t i = 0; i < this->m_payload.size(); i++)
 	{
 		if(this->m_payload[i] != constants::syncIdentifierDelimiter())
 		{
@@ -196,7 +196,7 @@ std::vector<std::string> dataMessage::viewServerSyncPayload() const
 
 	// #TODO_AH remove test code
 	std::cout << "new sync clients: ";
-	for(int i = 0; i < outServerSyncPayload.size(); i++)
+	for(size_t i = 0; i < outServerSyncPayload.size(); i++)
 	{
 		std::cout << outServerSyncPayload[i] << " ";
 	}
