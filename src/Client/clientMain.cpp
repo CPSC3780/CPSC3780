@@ -57,5 +57,9 @@ int main()
 		std::cout << exception.what() << std::endl;
 	}
 
+	std::string wait("");
+
+	std::cin >> wait;
+
 	return 0;
 }

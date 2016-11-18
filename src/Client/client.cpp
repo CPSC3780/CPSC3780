@@ -230,12 +230,16 @@ void client::receiveOverUDP()
 			{
 				case constants::MessageType::CONNECTION:
 				{
-					// Do nothing
+					// Clients should never receive connection requests.
+					// Clients can initiate connections with servers and
+					// Server can initiate connections with other servers,
+					// Clients initiate connections with other clients.
+					assert(false);
 					break;
 				}
 				case constants::MessageType::PRIVATE_MESSAGE:
 				{
-					std::cout << "Private Message: " << message.viewSourceIdentifier()
+					std::cout << "(Private) " << message.viewSourceIdentifier()
 						<< " says: " << message.viewPayload() << std::endl;
 					break;
 				}

@@ -85,6 +85,7 @@ private:
 	//--------------------------------------------------------------------------
 	void relayLoop();
 
+
 	//----------------------------------------------------------------- relayUDP
 	// Brief Description
 	//  Relays messages to clients and adjacent servers over UDP.
@@ -93,8 +94,10 @@ private:
 	// FullName:  server::relayUDP
 	// Access:    private 
 	// Returns:   void
+	// Parameter: const dataMessage& inMessageToSend
 	//--------------------------------------------------------------------------
-	void relayUDP();
+	void relayUDP(
+		const dataMessage& inMessageToSend);
 
 	//----------------------------------------------------------- relayBluetooth
 	// Brief Description
@@ -104,8 +107,10 @@ private:
 	// FullName:  server::relayBluetooth
 	// Access:    private 
 	// Returns:   void
+	// Parameter: const dataMessage & inMessageToSend
 	//--------------------------------------------------------------------------
-	void relayBluetooth();
+	void relayBluetooth(
+		const dataMessage& inMessageToSend);
 
 	//--------------------------------------------- sendClientsToAdjacentServers
 	// Brief Description

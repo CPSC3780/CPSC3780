@@ -15,8 +15,8 @@ namespace constants
 	const std::vector<uint16_t> serverListeningPorts(
 	{8080, 8081, 8082, 8083, 8084});
 
-	const size_t highestServerIndex = 
-		(constants::serverListeningPorts.size() - 1);
+	const int8_t highestServerIndex = 
+		(static_cast<int8_t>(constants::serverListeningPorts.size()) - 1);
 
 	const std::vector<std::string> serverNames(
 	{"Alpha", "Bravo", "Charlie", "Delta", "Echo"});
