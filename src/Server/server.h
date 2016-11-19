@@ -97,7 +97,7 @@ private:
 	// Parameter: const dataMessage& inMessageToSend
 	//--------------------------------------------------------------------------
 	void relayUDP(
-		const dataMessage& inMessageToSend);
+		dataMessage inMessageToSend);
 
 	//----------------------------------------------------------- relayBluetooth
 	// Brief Description
@@ -112,17 +112,17 @@ private:
 	void relayBluetooth(
 		const dataMessage& inMessageToSend);
 
-	//------------------------------------------------ maintainToAdjacentServers
+	//--------------------------------------------- sendClientsToAdjacentServers
 	// Brief Description
 	//  Sends a list of all clients connected to this server to the adjacent
 	//  servers if a connection can be established.
 	//
-	// Method:    maintainToAdjacentServers
-	// FullName:  server::maintainToAdjacentServers
+	// Method:    sendClientsToAdjacentServers
+	// FullName:  server::sendClientsToAdjacentServers
 	// Access:    private 
 	// Returns:   void
 	//--------------------------------------------------------------------------
-	void maintainToAdjacentServers();
+	void sendClientsToAdjacentServers();
 
 	//---------------------------------------- receiveClientsFromAdjacentServers
 	// Brief Description

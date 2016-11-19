@@ -147,13 +147,15 @@ namespace constants
 
 	enum MessageType
 	{
-		UNDEFINED = 0,
-		CONNECTION = 1,
-		PRIVATE_MESSAGE = 2,
-		DISCONNECT = 3,
-		CHAT = 4,
-		SYNC_LEFT = 5,
-		SYNC_RIGHT = 6,
-		PING = 7,
+		mt_UNDEFINED = 0,
+		mt_CLIENT_CONNECT = 1,
+		mt_CLIENT_DISCONNECT = 2,
+		mt_CLIENT_PRIVATE_CHAT = 3,
+		mt_CLIENT_TARGET_NOT_FOUND = 4,
+		mt_RELAY_CHAT = 5,
+		mt_SERVER_RELAY_CHAT = 6,
+		mt_SERVER_SYNC_LEFT = 7,
+		mt_SERVER_SYNC_RIGHT = 8,
+		mt_PING = 9,
 	};
 }

@@ -13,11 +13,11 @@
 
 class client
 {
-	enum protocol
+	enum Protocol
 	{
-		UNDEFINED = 0,
-		UDP = 1,
-		BLUETOOTH = 2
+		p_UNDEFINED = 0,
+		p_UDP = 1,
+		p_BLUETOOTH = 2
 	};
 
 public:
@@ -58,7 +58,7 @@ private:
 	//---------------------------------------------------------------- inputLoop
 	// Brief Description
 	//  Input loop for getting input from the user via command line. The input
-	//  is parsed and coverted to a data message, which is sent to the server
+	//  is parsed and converted to a data message, which is sent to the server
 	//  the client has established a connection with.
 	//
 	// Method:    inputLoop
@@ -133,7 +133,7 @@ private:
 	boost::asio::ip::udp::resolver m_resolver;
 	boost::asio::ip::udp::endpoint m_serverEndPoint;
 	boost::thread_group m_threads;
-	client::protocol m_activeProtocol;
+	client::Protocol m_activeProtocol;
 	bool m_terminate;
 	std::string m_username;
 	uint16_t m_serverPort;

@@ -14,12 +14,13 @@ dataMessage::dataMessage(
 	const std::string& inPayload,
 	const std::string& inSourceID,
 	const std::string& inDestinationID = "broadcast",
-	const constants::MessageType& inMessageType = constants::MessageType::CHAT)
+	const constants::MessageType& inMessageType = constants::MessageType::mt_RELAY_CHAT)
 {
 	this->m_payload = inPayload;
 	this->m_sourceIdentifier = inSourceID;
 	this->m_destinationIdentifier = inDestinationID;
 	this->m_messageType = inMessageType;
+	this->m_relayToAdjacentServers = true;
 };
 
 //------------------------------------------------------------------ constructor
@@ -30,12 +31,13 @@ dataMessage::dataMessage(
 	const std::vector<remoteConnection>& inServerSyncPayload,
 	const std::string& inSourceID,
 	const std::string& inDestinationID = "broadcast",
-	const constants::MessageType& inMessageType = constants::MessageType::CHAT)
+	const constants::MessageType& inMessageType = constants::MessageType::mt_RELAY_CHAT)
 {
 	this->m_payload = dataMessage::createServerSyncPayload(inServerSyncPayload);
-	this->m_sourceIdentifier = inSourceID;
+	this->m_sourceIdentifier = inSourceID + " Server";
 	this->m_destinationIdentifier = inDestinationID;
 	this->m_messageType = inMessageType;
+	this->m_relayToAdjacentServers = true;
 };
 
 //------------------------------------------------------------------ constructor
@@ -60,6 +62,10 @@ dataMessage::dataMessage(
 
 	std::string messageType = asString.substr(0, asString.find(constants::messageDelimiter()));
 	this->m_messageType = this->stringToMessageType(messageType);
+	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
+
+	std::string relayStatusAsString = asString.substr(0, asString.find(constants::messageDelimiter()));
+	this->m_relayToAdjacentServers = static_cast<bool>(std::stoi(relayStatusAsString));
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 };
 
@@ -88,6 +94,16 @@ const std::string& dataMessage::viewSourceIdentifier() const
 const std::string& dataMessage::viewDestinationIdentifier() const
 {
 	return this->m_destinationIdentifier;
+}
+
+//--------------------------------------------------------------- setMessageType
+// Implementation notes:
+//  Sets the messageType to the inMessageType for this object
+//------------------------------------------------------------------------------
+void dataMessage::setMessageType(
+	const constants::MessageType& inMessageType)
+{
+	this->m_messageType = inMessageType;
 };
 
 //-------------------------------------------------------------- viewMessageType
@@ -109,37 +125,42 @@ const std::string dataMessage::viewMessageTypeAsString() const
 
 	switch(this->m_messageType)
 	{
-		case constants::MessageType::CONNECTION:
+		case constants::MessageType::mt_CLIENT_CONNECT:
 		{
-			messageTypeAsString = "connection";
+			messageTypeAsString = "client connect";
 			break;
 		}	
-		case constants::MessageType::PRIVATE_MESSAGE:
+		case constants::MessageType::mt_CLIENT_DISCONNECT:
 		{
-			messageTypeAsString = "private";
+			messageTypeAsString = "client disconnect";
 			break;
 		}
-		case constants::MessageType::DISCONNECT:
+		case constants::MessageType::mt_CLIENT_PRIVATE_CHAT:
 		{
-			messageTypeAsString = "disconnect";
+			messageTypeAsString = "private chat";
 			break;
 		}
-		case constants::MessageType::CHAT:
+		case constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND:
 		{
-			messageTypeAsString = "chat";
+			messageTypeAsString = "target not found";
 			break;
 		}
-		case constants::MessageType::SYNC_LEFT:
+		case constants::MessageType::mt_RELAY_CHAT:
 		{
-			messageTypeAsString = "sync_left";
+			messageTypeAsString = "relay chat";
 			break;
 		}
-		case constants::MessageType::SYNC_RIGHT:
+		case constants::MessageType::mt_SERVER_SYNC_RIGHT:
 		{
-			messageTypeAsString = "sync_right";
+			messageTypeAsString = "sync right";
 			break;
 		}
-		case constants::MessageType::PING:
+		case constants::MessageType::mt_SERVER_SYNC_LEFT:
+		{
+			messageTypeAsString = "sync left";
+			break;
+		}
+		case constants::MessageType::mt_PING:
 		{
 			messageTypeAsString = "ping";
 			break;
@@ -152,6 +173,58 @@ const std::string dataMessage::viewMessageTypeAsString() const
 
 	return messageTypeAsString;
 }
+
+//---------------------------------------------------------- stringToMessageType
+// Implementation notes:
+//  Converts the string to the corresponding messageType enum
+//------------------------------------------------------------------------------
+const constants::MessageType dataMessage::stringToMessageType(
+	const std::string& inMessageTypeAsString) const
+{
+	if(inMessageTypeAsString == "client connect")
+	{
+		return constants::MessageType::mt_CLIENT_CONNECT;
+	}
+
+	if(inMessageTypeAsString == "client disconnect")
+	{
+		return constants::MessageType::mt_CLIENT_DISCONNECT;
+	}
+
+	if(inMessageTypeAsString == "private chat")
+	{
+		return constants::MessageType::mt_CLIENT_PRIVATE_CHAT;
+	}
+
+	if(inMessageTypeAsString == "target not found")
+	{
+		return constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND;
+	}
+
+	if(inMessageTypeAsString == "relay chat")
+	{
+		return constants::MessageType::mt_RELAY_CHAT;
+	}
+
+	if(inMessageTypeAsString == "sync right")
+	{
+		return constants::mt_SERVER_SYNC_RIGHT;
+	}
+
+	if(inMessageTypeAsString == "sync left")
+	{
+		return constants::mt_SERVER_SYNC_LEFT;
+	}
+
+	if(inMessageTypeAsString == "ping")
+	{
+		return constants::mt_PING;
+	}
+
+	assert(false);
+
+	return constants::MessageType::mt_UNDEFINED;
+};
 
 //------------------------------------------------------ createServerSyncPayload
 // Implementation notes:
@@ -194,64 +267,26 @@ std::vector<std::string> dataMessage::viewServerSyncPayload() const
 		}
 	}
 
-	// #TODO_AH remove test code
-	std::cout << "new sync clients: ";
-	for(size_t i = 0; i < outServerSyncPayload.size(); i++)
-	{
-		std::cout << outServerSyncPayload[i] << " ";
-	}
-	std::cout << std::endl;
-
-	std::cout << "sync list size: " << outServerSyncPayload.size() << std::endl;
-
 	return outServerSyncPayload;
+}
+
+//------------------------------------------------------- relayToAdjacentServers
+// Implementation notes:
+//  Returns a const reference to the serverRelayStatus
+//------------------------------------------------------------------------------
+const bool& dataMessage::relayToAdjacentServers() const
+{
+	return this->m_relayToAdjacentServers;
 };
 
-//---------------------------------------------------------- stringToMessageType
+//--------------------------------------------------------- setServerRelayStatus
 // Implementation notes:
-//  Converts the string to the corresponding messageType enum
+//  Sets the serverRelayStatus to the inServerRelayStatus
 //------------------------------------------------------------------------------
-const constants::MessageType dataMessage::stringToMessageType(
-	const std::string& type) const
+void dataMessage::setServerRelayStatus(
+	const bool& inServerRelayStatus)
 {
-	if(type == "connection")
-	{
-		return constants::MessageType::CONNECTION;
-	}
-
-	if(type == "private")
-	{
-		return constants::MessageType::PRIVATE_MESSAGE;
-	}
-
-	if(type == "disconnect")
-	{
-		return constants::MessageType::DISCONNECT;
-	}
-
-	if(type == "chat")
-	{
-		return constants::MessageType::CHAT;
-	}
-
-	if(type == "sync_right")
-	{
-		return constants::SYNC_RIGHT;
-	}
-
-	if(type == "sync_left")
-	{
-		return constants::SYNC_LEFT;
-	}
-
-	if(type == "ping")
-	{
-		return constants::PING;
-	}
-
-	assert(false);
-
-	return constants::MessageType::UNDEFINED;
+	this->m_relayToAdjacentServers = inServerRelayStatus;
 };
 
 //----------------------------------------------------------------- asVectorChar
@@ -264,7 +299,8 @@ std::vector<char> dataMessage::asCharVector() const
 		this->m_payload + constants::messageDelimiter()
 		+ this->m_sourceIdentifier + constants::messageDelimiter()
 		+ this->m_destinationIdentifier + constants::messageDelimiter()
-		+ this->viewMessageTypeAsString() + constants::messageDelimiter());
+		+ this->viewMessageTypeAsString() + constants::messageDelimiter()
+		+ std::to_string(this->m_relayToAdjacentServers) + constants::messageDelimiter());
 
 	return std::vector<char>(
 		messageAsString.begin(),

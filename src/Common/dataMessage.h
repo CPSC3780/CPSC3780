@@ -111,6 +111,33 @@ public:
 	//--------------------------------------------------------------------------
 	const std::string& viewDestinationIdentifier() const;
 
+	//----------------------------------------------------------- setMessageType
+	// Brief Description
+	//  Sets the message type to the inMessageType for this object.
+	//
+	// Method:    setMessageType
+	// FullName:  dataMessage::setMessageType
+	// Access:    public 
+	// Returns:   void
+	// Parameter: const constants::MessageType& inMessageType
+	//--------------------------------------------------------------------------
+	void setMessageType(
+		const constants::MessageType& inMessageType);
+	
+	//------------------------------------------------------ stringToMessageType
+	// Brief Description
+	//  Converts an input string (usually from the command line) to the
+	//  equivalent message type enum.
+	//
+	// Method:    stringToMessageType
+	// FullName:  dataMessage::stringToMessageType
+	// Access:    public 
+	// Returns:   const constants::MessageType
+	// Parameter: const std::string & inMessageTypeAsString
+	//--------------------------------------------------------------------------
+	const constants::MessageType stringToMessageType(
+		const std::string& inMessageTypeAsString) const;
+
 	//---------------------------------------------------------- viewMessageType
 	// Brief Description
 	//  Returns a const reference to the message type. This tells the server
@@ -124,20 +151,6 @@ public:
 	// Returns:   const constants::MessageType&
 	//--------------------------------------------------------------------------
 	const constants::MessageType& viewMessageType() const;
-
-	//------------------------------------------------------ stringToMessageType
-	// Brief Description
-	//  Converts an input string (usually from the command line) to the
-	//  equivalent message type enum.
-	//
-	// Method:    stringToMessageType
-	// FullName:  dataMessage::stringToMessageType
-	// Access:    public 
-	// Returns:   const constants::MessageType
-	// Parameter: const std::string&
-	//--------------------------------------------------------------------------
-	const constants::MessageType stringToMessageType(
-		const std::string&) const;
 
 	//-------------------------------------------------- viewMessageTypeAsString
 	// Brief Description
@@ -176,6 +189,31 @@ public:
 	//--------------------------------------------------------------------------
 	std::vector<std::string> viewServerSyncPayload() const;
 
+	//--------------------------------------------------- relayToAdjacentServers
+	// Brief Description
+	//  Used to determine if the message should be relayed to adjacent
+	//  servers or not, necessary to avoid an infinite loop.
+	//
+	// Method:    relayToAdjacentServers
+	// FullName:  dataMessage::relayToAdjacentServers
+	// Access:    public 
+	// Returns:   const bool&
+	//--------------------------------------------------------------------------
+	const bool& relayToAdjacentServers() const;
+
+	//----------------------------------------------------- setServerRelayStatus
+	// Brief Description
+	//  Set the serverRelayStatus to the inRelayStatus
+	//
+	// Method:    setServerRelayStatus
+	// FullName:  dataMessage::setServerRelayStatus
+	// Access:    public 
+	// Returns:   void
+	// Parameter: const bool& inServerRelayStatus
+	//--------------------------------------------------------------------------
+	void setServerRelayStatus(
+		const bool& inServerRelayStatus);
+
 	//------------------------------------------------------------- asCharVector
 	// Brief Description
 	//  Returns a vector of chars that represents this dataMessage object. This
@@ -195,4 +233,5 @@ private:
 	std::string m_sourceIdentifier;
 	std::string m_destinationIdentifier;
 	constants::MessageType m_messageType;
+	bool m_relayToAdjacentServers;
 };
