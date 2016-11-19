@@ -49,6 +49,19 @@ namespace constants
 		return static_cast<uint8_t>(inCharAsLower - 'a');
 	};
 
+
+	static bool leftAdjacentServerIndexIsValid(
+		const int8_t& inLeftAdjacentServerIndex)
+	{
+		return inLeftAdjacentServerIndex >= 0;
+	};
+
+	static bool rightAdjacentServerIndexIsValid(
+		const int8_t& inRightAdjacentServerIndex)
+	{
+		return inRightAdjacentServerIndex <= constants::highestServerIndex;
+	};
+
 	//----------------------------------------------- serverIndexToListeningPort
 	// Brief Description
 	//  Returns the listening port associated with a server index.

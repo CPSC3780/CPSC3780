@@ -112,17 +112,17 @@ private:
 	void relayBluetooth(
 		const dataMessage& inMessageToSend);
 
-	//--------------------------------------------- sendClientsToAdjacentServers
+	//------------------------------------------------ maintainToAdjacentServers
 	// Brief Description
 	//  Sends a list of all clients connected to this server to the adjacent
 	//  servers if a connection can be established.
 	//
-	// Method:    sendClientsToAdjacentServers
-	// FullName:  server::sendClientsToAdjacentServers
+	// Method:    maintainToAdjacentServers
+	// FullName:  server::maintainToAdjacentServers
 	// Access:    private 
 	// Returns:   void
 	//--------------------------------------------------------------------------
-	void sendClientsToAdjacentServers();
+	void maintainToAdjacentServers();
 
 	//---------------------------------------- receiveClientsFromAdjacentServers
 	// Brief Description
@@ -197,9 +197,11 @@ private:
 
 	std::vector<remoteConnection> m_connectedClients;
 
+	int8_t m_leftAdjacentServerIndex;
 	remoteConnection* m_leftAdjacentServerConnection;
 	std::vector<std::string> m_leftAdjacentServerConnectedClients;
 
+	int8_t m_rightAdjacentServerIndex;
 	remoteConnection* m_rightAdjacentServerConnection;
 	std::vector<std::string> m_rightAdjacentServerConnectedClients;
 };
