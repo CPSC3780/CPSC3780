@@ -1,3 +1,6 @@
+// STL
+#include <cassert>
+
 // Project
 #include "remoteConnection.h"
 
@@ -48,4 +51,4 @@ const boost::chrono::system_clock::time_point& remoteConnection::viewTimeOfLastA
 void remoteConnection::refreshTimeOfLastActivity()
 {
 	this->m_timeOfLastActivity = boost::chrono::system_clock::now();
-};
+}

@@ -97,7 +97,7 @@ private:
 	// Parameter: const dataMessage& inMessageToSend
 	//--------------------------------------------------------------------------
 	void relayUDP(
-		const dataMessage& inMessageToSend);
+		dataMessage inMessageToSend);
 
 	//----------------------------------------------------------- relayBluetooth
 	// Brief Description
@@ -197,9 +197,11 @@ private:
 
 	std::vector<remoteConnection> m_connectedClients;
 
+	int8_t m_leftAdjacentServerIndex;
 	remoteConnection* m_leftAdjacentServerConnection;
 	std::vector<std::string> m_leftAdjacentServerConnectedClients;
 
+	int8_t m_rightAdjacentServerIndex;
 	remoteConnection* m_rightAdjacentServerConnection;
 	std::vector<std::string> m_rightAdjacentServerConnectedClients;
 };

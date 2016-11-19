@@ -30,7 +30,7 @@ client::client(
 	this->m_terminate = false;
 
 	this->m_activeProtocol =
-		client::protocol::UDP;
+		client::Protocol::p_UDP;
 
 	// #TODO can be hardcoded to lan ip, should make this dynamic
 	const std::string serverAddress = 
@@ -58,7 +58,7 @@ client::client(
 		initiateMessage,
 		source,
 		destination,
-		constants::CONNECTION);
+		constants::mt_CLIENT_CONNECT);
 
 	this->sendOverUDP(
 		connectionMessage);
@@ -100,7 +100,7 @@ void client::inputLoop()
 		// By default, destination and message type are "broadcast"
 		// and "chat", respectively
 		std::string destination = "broadcast";
-		constants::MessageType messageType = constants::MessageType::CHAT;
+		constants::MessageType messageType = constants::MessageType::mt_RELAY_CHAT;
 
 		std::stringstream ss;
 		ss << chatInput;
@@ -114,7 +114,7 @@ void client::inputLoop()
 			ss >> destination;
 			
 			std::getline(ss, chatInput);
-			messageType = constants::MessageType::PRIVATE_MESSAGE;
+			messageType = constants::MessageType::mt_CLIENT_PRIVATE_CHAT;
 		}
 
 		dataMessage currentMessage(
@@ -134,7 +134,7 @@ void client::inputLoop()
 				disconnectMessage,
 				this->m_username,
 				destination,
-				constants::DISCONNECT);
+				constants::mt_CLIENT_DISCONNECT);
 
 			this->sendOverUDP(currentMessage);
 
@@ -145,17 +145,17 @@ void client::inputLoop()
 			// Branch on protocol
 			switch(this->m_activeProtocol)
 			{
-				case client::protocol::UDP:
+				case client::Protocol::p_UDP:
 				{
 					this->sendOverUDP(currentMessage);
 					break;
 				}
-				case client::protocol::BLUETOOTH:
+				case client::Protocol::p_BLUETOOTH:
 				{
 					this->sendOverBluetooth(currentMessage);
 					break;
 				}
-				case client::protocol::UNDEFINED:
+				case client::Protocol::p_UNDEFINED:
 				default:
 				{
 					assert(false);
@@ -228,41 +228,44 @@ void client::receiveOverUDP()
 
 			switch(messageType)
 			{
-				case constants::MessageType::CONNECTION:
+				case constants::MessageType::mt_CLIENT_CONNECT:
 				{
-					// Clients should never receive connection requests.
-					// Clients can initiate connections with servers and
-					// Server can initiate connections with other servers,
-					// Clients initiate connections with other clients.
-					assert(false);
+					std::cout << message.viewPayload() << std::endl;
 					break;
 				}
-				case constants::MessageType::PRIVATE_MESSAGE:
+				case constants::MessageType::mt_CLIENT_DISCONNECT:
+				{
+					// Do nothing
+					break;
+				}
+				case constants::MessageType::mt_CLIENT_PRIVATE_CHAT:
 				{
 					std::cout << "(Private) " << message.viewSourceIdentifier()
 						<< " says: " << message.viewPayload() << std::endl;
 					break;
 				}
-				case constants::MessageType::DISCONNECT:
+				case constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND:
 				{
-					// Do nothing
+					std::cout << "Server: Could not deliver message to \"" 
+						<< message.viewDestinationIdentifier() << "\"" << std::endl;
 					break;
 				}
-				case constants::MessageType::CHAT:
+				case constants::MessageType::mt_RELAY_CHAT:
 				{
 					std::cout << message.viewSourceIdentifier() << " says: "
 						<< message.viewPayload() << std::endl;
 					break;
 				}
-				case constants::MessageType::SYNC_LEFT:
-				case constants::MessageType::SYNC_RIGHT:
+				case constants::MessageType::mt_SERVER_SYNC_LEFT:
+				case constants::MessageType::mt_SERVER_SYNC_RIGHT:
 				{
 					// Syncs are only used by servers, never by clients
 					assert(false);
 					break;
 				}
-				case constants::MessageType::PING:
+				case constants::MessageType::mt_PING:
 				{
+					// #TODO_AH implement? necessary?
 					// Do nothing
 					break;
 				}

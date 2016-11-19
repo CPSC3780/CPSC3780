@@ -2,6 +2,7 @@
 
 // STL
 #include <string>
+#include <cstdint>
 
 // Boost
 #include <boost/asio.hpp>
