@@ -294,7 +294,7 @@ void server::relayUDP(
 				}
 
 				// Also relay to right adjacent server
-				if(this->m_leftAdjacentServerConnection != nullptr)
+				if(this->m_rightAdjacentServerConnection != nullptr)
 				{
 					this->m_UDPsocket.send_to(
 						boost::asio::buffer(inMessageToSend.asCharVector()),
