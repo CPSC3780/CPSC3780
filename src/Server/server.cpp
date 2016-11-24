@@ -173,7 +173,7 @@ void server::listenLoopUDP()
 				}
 				case constants::MessageType::mt_CLIENT_SEND:
 				{
-					this->addToMessageList(
+					this->processClientSendMessage(
 						message);
 					break;
 				}
@@ -191,7 +191,8 @@ void server::listenLoopUDP()
 				}
 				case constants::MessageType::mt_SERVER_SEND:
 				{
-					// #TODO_AH implement
+					this->processServerRelayMessage(
+						message);
 					break;
 				}
 				case constants::MessageType::mt_SERVER_ACK:
@@ -285,7 +286,7 @@ void server::removeReceivedMessageFromList(
 		it != this->m_messageList.end();
 		it++)
 	{
-		if(it->viewSequenceNumber()== inMessage.viewSequenceNumber())
+		if(it->viewSequenceNumber() == inMessage.viewSequenceNumber())
 		{
 			this->m_messageList.erase(it);
 			break;
@@ -293,6 +294,197 @@ void server::removeReceivedMessageFromList(
 		else
 		{
 			continue;
+		}
+	}
+}
+
+//----------------------------------------------------- processClientSendMessage
+// Implementation notes:
+//  Determines if the message the client send should be kept on this server
+//  or if it should be forward to another server
+//------------------------------------------------------------------------------
+void server::processClientSendMessage(
+	const dataMessage& inMessage)
+{
+	const std::string destinationID(
+		inMessage.viewDestinationIdentifier());
+
+	// check this server's client list first
+	for(const remoteConnection& currentClient : this->m_connectedClients)
+	{
+		if(currentClient.viewIdentifier() == destinationID)
+		{
+			// destination client was found on this server, stop searching
+			// and add to the message list of this server
+			this->addToMessageList(
+				inMessage);
+
+			return;
+		}
+		else
+		{
+			// client does not match, continue searching
+			continue;
+		}
+	}
+
+	// check clients on servers to the left
+	for(int8_t serverIndex = 0; 
+		serverIndex < this->m_index; 
+		serverIndex++)
+	{
+		for(size_t i = 0;
+			i < this->m_clientsServedByServerIndex[serverIndex].size();
+			i++)
+		{
+			if(this->m_clientsServedByServerIndex[serverIndex][i] == destinationID)
+			{
+
+				if(this->m_leftAdjacentServerConnection != nullptr)
+				{
+					try
+					{
+						boost::system::error_code ignoredError;
+
+						this->m_UDPsocket.send_to(
+							boost::asio::buffer(inMessage.asCharVector()),
+							this->m_leftAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+
+					}
+					catch(std::exception& exception)
+					{
+						// std::cout << exception.what() << std::endl;
+					}
+				}
+				else
+				{
+					// programming error, should never make it here
+					assert(false);
+				}
+
+				return;
+			}
+			else
+			{
+				// client does not match, continue searching
+				continue;
+			}
+		}
+	}
+
+	// check clients on servers to the right
+	for(int8_t serverIndex = constants::highestServerIndex; 
+		serverIndex > this->m_index; 
+		serverIndex--)
+	{
+		for(size_t i = 0;
+			i < this->m_clientsServedByServerIndex[serverIndex].size();
+			i++)
+		{
+			if(this->m_clientsServedByServerIndex[serverIndex][i] == destinationID)
+			{
+
+				if(this->m_rightAdjacentServerConnection != nullptr)
+				{
+					try
+					{
+						boost::system::error_code ignoredError;
+
+						this->m_UDPsocket.send_to(
+							boost::asio::buffer(inMessage.asCharVector()),
+							this->m_rightAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+
+					}
+					catch(std::exception& exception)
+					{
+						// std::cout << exception.what() << std::endl;
+					}
+				}
+				else
+				{
+					// programming error, should never make it here
+					assert(false);
+				}
+
+				return;
+			}
+			else
+			{
+				// client does not match, continue searching
+				continue;
+			}
+		}
+	}
+
+	// if we make it here, as per the requirements, we hold on to the message
+	this->addToMessageList(
+		inMessage);
+};
+
+//---------------------------------------------------- processServerRelayMessage
+// Implementation notes:
+//  Determines if a message relayed from another server has reached
+//  the destination or if it must be relayed further
+//------------------------------------------------------------------------------
+void server::processServerRelayMessage(
+	const dataMessage& inMessage)
+{
+	if(inMessage.viewDestinationIdentifier()
+		== constants::serverIndexToServerName(this->m_index))
+	{
+		this->addToMessageList(
+			inMessage);
+	}
+	else
+	{
+		if(inMessage.viewServerSyncPayloadOriginIndex() < this->m_index)
+		{
+			// forward right
+			if(this->m_rightAdjacentServerConnection != nullptr)
+			{
+				try
+				{
+					boost::system::error_code ignoredError;
+
+					this->m_UDPsocket.send_to(
+						boost::asio::buffer(inMessage.asCharVector()),
+						this->m_rightAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+				}
+				catch(std::exception& exception)
+				{
+					// std::cout << exception.what() << std::endl;
+				}
+			}
+			else
+			{
+				// programming error, should never make it here
+				assert(false);
+			}
+		}
+		else
+		{
+			// forward left
+			if(this->m_leftAdjacentServerConnection != nullptr)
+			{
+				try
+				{
+					boost::system::error_code ignoredError;
+
+					this->m_UDPsocket.send_to(
+						boost::asio::buffer(inMessage.asCharVector()),
+						this->m_leftAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+
+				}
+				catch(std::exception& exception)
+				{
+					// std::cout << exception.what() << std::endl;
+				}
+			}
+			else
+			{
+				// programming error, should never make it here
+				assert(false);
+			}
 		}
 	}
 };
@@ -450,23 +642,8 @@ const int64_t& server::sequenceNumber()
 void server::receiveClientsFromAdjacentServers(
 	const dataMessage& inSyncMessage)
 {
-	switch(inSyncMessage.viewMessageType())
-	{
-		case constants::MessageType::mt_SERVER_SYNC:
-		{
-			this->m_clientsServedByServerIndex[inSyncMessage.viewServerSyncPayloadOriginIndex()] =
-				inSyncMessage.viewServerSyncPayload();
-
-			break;
-		}
-		default:
-		{
-			// should never make it here, programming error if this happens
-			assert(false);
-			break;
-		}
-
-	}
+	this->m_clientsServedByServerIndex[inSyncMessage.viewServerSyncPayloadOriginIndex()] =
+		inSyncMessage.viewServerSyncPayload();
 };
 
 //---------------------------------------------------------- addClientConnection
@@ -488,13 +665,13 @@ void server::addClientConnection(
 void server::removeClientConnection(
 	const std::string& inClientUsername)
 {
-	for(std::vector<remoteConnection>::iterator currentClient = this->m_connectedClients.begin();
-		currentClient != this->m_connectedClients.end();
-		++currentClient)
+	for(std::vector<remoteConnection>::iterator it = this->m_connectedClients.begin();
+		it != this->m_connectedClients.end();
+		it++)
 	{
-		if(currentClient->viewIdentifier() == inClientUsername)
+		if(it->viewIdentifier() == inClientUsername)
 		{
-			this->m_connectedClients.erase(currentClient);
+			this->m_connectedClients.erase(it);
 		}
 		break;
 	}

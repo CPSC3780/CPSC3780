@@ -95,15 +95,22 @@ void client::getLoop()
 {
 	while(!this->m_terminate)
 	{
-		dataMessage connectionMessage(
-			this->sequenceNumber(),
-			constants::mt_CLIENT_GET,
-			this->m_username,
-			constants::serverIndexToServerName(this->m_serverIndex),
-			"blank");
+		try
+		{
+			dataMessage connectionMessage(
+				this->sequenceNumber(),
+				constants::mt_CLIENT_GET,
+				this->m_username,
+				constants::serverIndexToServerName(this->m_serverIndex),
+				"blank");
 
-		this->sendOverUDP(
-			connectionMessage);
+			this->sendOverUDP(
+				connectionMessage);
+		}
+		catch(std::exception& exception)
+		{
+			std::cout << exception.what() << std::endl;
+		}
 
 		// sleep
 		boost::this_thread::sleep(
