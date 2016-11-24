@@ -90,6 +90,14 @@ private:
 	void removeReceivedMessageFromList(
 		const dataMessage& inMessage);
 
+	// #TODO_AH fix me
+	void processClientSendMessage(
+		const dataMessage& inMessage);
+
+	// #TODO_AH fix me
+	void processServerRelayMessage(
+		const dataMessage& inMessage);
+
 	//------------------------------------------------------ listenLoopBluetooth
 	// Brief Description
 	//  The server's listening loop for Bluetooth. It receives messages from 
