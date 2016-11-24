@@ -6,7 +6,7 @@
 
 // STL
 #include <vector>
-#include <queue>
+#include <list>
 #include <string>
 #include <utility>
 #include <cstdint>
@@ -61,56 +61,42 @@ public:
 
 private:
 
-	//--------------------------------------------------------------- listenLoop
+	//------------------------------------------------------------ listenLoopUDP
 	// Brief Description
-	//  The server's listening loop, used for receiving connections and messages
-	//  from clients and adjacent servers.
+	//  The server's listening loop for UDP. It receives messages from clients
+	//  over UDP and acts accordingly.
 	//
-	// Method:    listenLoop
-	// FullName:  server::listenLoop
+	// Method:    listenLoopUDP
+	// FullName:  server::listenLoopUDP
 	// Access:    private 
 	// Returns:   void
 	//--------------------------------------------------------------------------
-	void listenLoop();
+	void listenLoopUDP();
 
-	//---------------------------------------------------------------- relayLoop
+	//----------------------------------------------------- sendMessagesToClient
 	// Brief Description
-	//  The server's relay loop, used to relay the messages to the clients and
-	//  adjacent servers over the supported protocols.
+	//  Called when a client sends a get to the server. It makes the server send
+	//  that client all messages that are destined for it.
 	//
-	// Method:    relayLoop
-	// FullName:  server::relayLoop
+	// Method:    sendMessagesToClient
+	// FullName:  server::sendMessagesToClient
 	// Access:    private 
 	// Returns:   void
 	//--------------------------------------------------------------------------
-	void relayLoop();
+	void sendMessagesToClient(
+		const std::string& inClientIdentifier);
 
-
-	//----------------------------------------------------------------- relayUDP
+	//------------------------------------------------------ listenLoopBluetooth
 	// Brief Description
-	//  Relays messages to clients and adjacent servers over UDP.
+	//  The server's listening loop for Bluetooth. It receives messages from 
+	//  clients over Bluetooth and acts accordingly.
 	//
-	// Method:    relayUDP
-	// FullName:  server::relayUDP
+	// Method:    listenLoopBluetooth
+	// FullName:  server::listenLoopBluetooth
 	// Access:    private 
 	// Returns:   void
-	// Parameter: const dataMessage& inMessageToSend
 	//--------------------------------------------------------------------------
-	void relayUDP(
-		dataMessage inMessageToSend);
-
-	//----------------------------------------------------------- relayBluetooth
-	// Brief Description
-	//  Relays messages to clients and adjacent servers over Bluetooth.
-	//
-	// Method:    relayBluetooth
-	// FullName:  server::relayBluetooth
-	// Access:    private 
-	// Returns:   void
-	// Parameter: const dataMessage & inMessageToSend
-	//--------------------------------------------------------------------------
-	void relayBluetooth(
-		const dataMessage& inMessageToSend);
+	void listenLoopBluetooth();
 
 	//--------------------------------------------- sendSyncPayloads
 	// Brief Description
@@ -170,24 +156,24 @@ private:
 	// FullName:  server::removeClientConnection
 	// Access:    private 
 	// Returns:   void
-	// Parameter: const std::string & inClientUsername
+	// Parameter: const std::string& inClientUsername
 	//--------------------------------------------------------------------------
 	void removeClientConnection(
 		const std::string& inClientUsername);
 
-	//-------------------------------------------------------- addToMessageQueue
+	//--------------------------------------------------------- addToMessageList
 	// Brief Description
-	//  Helper function. Adds a data message to the queue that will then
-	//  subsequently be relayed as specified.
+	//  Helper function. Adds a data message to the list of messages that
+	//  haven't been delivered to a client.
 	//
-	// Method:    addToMessageQueue
-	// FullName:  server::addToMessageQueue
+	// Method:    addToMessageList
+	// FullName:  server::addToMessageList
 	// Access:    private 
 	// Returns:   void
-	// Parameter: const dataMessage & message
+	// Parameter: const dataMessage& message
 	//--------------------------------------------------------------------------
-	void addToMessageQueue(
-		const dataMessage& message);
+	void addToMessageList(
+		dataMessage message);
 
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
@@ -199,7 +185,7 @@ private:
 	bool m_terminate;
 	int64_t m_sequenceNumber;
 
-	std::queue<dataMessage> m_messageQueue;
+	std::list<dataMessage> m_messageList;
 
 	std::vector<remoteConnection> m_connectedClients;
 

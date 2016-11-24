@@ -107,13 +107,13 @@ server::~server()
 //------------------------------------------------------------------------------
 void server::run()
 {
-	// thread for receiving connections
+	// thread for listening/acting via UDP
 	this->m_threads.create_thread(
-		boost::bind(&server::listenLoop, this));
+		boost::bind(&server::listenLoopUDP, this));
 
-	// thread for relaying messages with various protocols
+	// thread for listening/acting via Blueooth
 	this->m_threads.create_thread(
-		boost::bind(&server::relayLoop, this));
+		boost::bind(&server::listenLoopBluetooth, this));
 
 	// thread for syncing adjacent servers
 	this->m_threads.create_thread(
@@ -124,9 +124,9 @@ void server::run()
 
 //------------------------------------------------------------------- listenLoop
 // Implementation notes:
-//  Listen for connections and messages
+//  Listen and acts via UDP
 //------------------------------------------------------------------------------
-void server::listenLoop()
+void server::listenLoopUDP()
 {
 	while(!this->m_terminate)
 	{
@@ -163,7 +163,6 @@ void server::listenLoop()
 					this->addClientConnection(
 						message.viewSourceIdentifier(),
 						clientEndpoint);
-
 					break;
 				}
 				case constants::MessageType::mt_CLIENT_DISCONNECT:
@@ -172,14 +171,31 @@ void server::listenLoop()
 						message.viewSourceIdentifier());
 					break;
 				}
-				case constants::MessageType::mt_RELAY_CHAT:
+				case constants::MessageType::mt_CLIENT_SEND:
 				{
-					// Do nothing
+					this->addToMessageList(
+						message);
 					break;
 				}
-				case constants::MessageType::mt_CLIENT_PRIVATE_CHAT:
+				case constants::MessageType::mt_CLIENT_GET:
 				{
-					// Do nothing
+					this->sendMessagesToClient(
+						message.viewSourceIdentifier());
+					break;
+				}
+				case constants::MessageType::mt_CLIENT_ACK:
+				{
+					// #TODO_AH implement
+					break;
+				}
+				case constants::MessageType::mt_SERVER_SEND:
+				{
+					// #TODO_AH implement
+					break;
+				}
+				case constants::MessageType::mt_SERVER_ACK:
+				{
+					// #TODO_AH implement
 					break;
 				}
 				case constants::MessageType::mt_SERVER_SYNC:
@@ -192,6 +208,11 @@ void server::listenLoop()
 					continue;
 					break;
 				}
+				case constants::MessageType::mt_PING:
+				{
+					// Do nothing
+					break;
+				}
 				default:
 				{
 					assert(false);
@@ -199,9 +220,6 @@ void server::listenLoop()
 			}
 
 			std::cout << std::endl;
-
-			this->addToMessageQueue(
-				message);
 		}
 		catch(...)
 		{
@@ -209,194 +227,62 @@ void server::listenLoop()
 		}
 
 	}
-};
+}
 
-//-------------------------------------------------------------------- relayLoop
+//---------------------------------------------------------- sendMessageToClient
 // Implementation notes:
-//  Relays messages received to all clients connected to this server instance
-//  through various protocols
+//  Sends all messages destined for the client who sent the get request
 //------------------------------------------------------------------------------
-void server::relayLoop()
+void server::sendMessagesToClient(
+	const std::string& inClientIdentifier)
 {
-	while(!this->m_terminate)
+	boost::system::error_code ignoredError;
+
+	for(const remoteConnection& targetClient : this->m_connectedClients)
 	{
-		while(!(this->m_messageQueue.empty()))
+		if(targetClient.viewIdentifier() == inClientIdentifier)
 		{
-			const dataMessage& inMessageToSend(
-				this->m_messageQueue.front());
+			for(const dataMessage& currentMessage : this->m_messageList)
+			{
+				if(currentMessage.viewDestinationIdentifier() == inClientIdentifier)
+				{
+					try
+					{
+						this->m_UDPsocket.send_to(
+							boost::asio::buffer(currentMessage.asCharVector()),
+							targetClient.viewEndpoint(), 0, ignoredError);
+					}
+					catch(std::exception& exception)
+					{
+						// std::cout << exception.what() << std::endl;
+					}
+				}
+				else
+				{
+					// Do nothing, message is not destined for the 
+					// client that issued the get
+				}
+			}
 
-			this->relayUDP(inMessageToSend);
-			this->relayBluetooth(inMessageToSend);
-
-			// Message sent over both protocols, remove from queue
-			this->m_messageQueue.pop();
+			break;
+		}
+		else
+		{
+			// Do nothing, target client is not the one we want
 		}
 	}
 };
 
-//--------------------------------------------------------------------- relayUDP
+//---------------------------------------------------------- listenLoopBluetooth
 // Implementation notes:
-//  Relay over UDP
+//  Listens and acts via Bluetooth
 //------------------------------------------------------------------------------
-void server::relayUDP(
-	dataMessage inMessageToSend)
+void server::listenLoopBluetooth()
 {
-	try
+	while(!this->m_terminate)
 	{
-		boost::system::error_code ignoredError;
-
-		// 		if(inMessageToSend.viewDestinationIdentifier() == "broadcast")
-		// 		{
-		// 
-		// 			// If broadcast, send to all connected clients except sender
-		// 			for(const remoteConnection& targetClient : this->m_connectedClients)
-		// 			{
-		// 				if(targetClient.viewIdentifier() != inMessageToSend.viewSourceIdentifier())
-		// 				{
-		// 					this->m_UDPsocket.send_to(
-		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
-		// 						targetClient.viewEndpoint(), 0, ignoredError);
-		// 				}
-		// 				else
-		// 				{
-		// 					// Do nothing, don't broadcast back to sender
-		// 				}
-		// 			}
-		// 
-		// 			if(inMessageToSend.relayToAdjacentServers())
-		// 			{
-		// 				// Change the server relay status to avoid an infinite loop
-		// 				inMessageToSend.setServerRelayStatus(
-		// 					false);
-		// 
-		// 				// Also relay to left adjacent server
-		// 				if(this->m_leftAdjacentServerConnection != nullptr)
-		// 				{
-		// 					this->m_UDPsocket.send_to(
-		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
-		// 						this->m_leftAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
-		// 				}
-		// 				else
-		// 				{
-		// 					// Do nothing, no valid left adjacent server
-		// 				}
-		// 
-		// 				// Also relay to right adjacent server
-		// 				if(this->m_rightAdjacentServerConnection != nullptr)
-		// 				{
-		// 					this->m_UDPsocket.send_to(
-		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
-		// 						this->m_rightAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
-		// 				}
-		// 				else
-		// 				{
-		// 					// Do nothing, no valid left adjacent server
-		// 				}
-		// 			}
-		// 			else
-		// 			{
-		// 				// Do nothing, don't relay back to server that sent it
-		// 			}
-		// 		}
-		// 		else
-		// 		{
-		// 			// if not broadcast, it's a private message, send only to the matched client
-		// 
-		// 			// check list of directly connect clients first
-		// 			for(const remoteConnection& targetClient : this->m_connectedClients)
-		// 			{
-		// 				if(targetClient.viewIdentifier() == inMessageToSend.viewDestinationIdentifier())
-		// 				{
-		// 					this->m_UDPsocket.send_to(
-		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
-		// 						targetClient.viewEndpoint(), 0, ignoredError);
-		// 					return;
-		// 				}
-		// 				else
-		// 				{
-		// 					// Do nothing
-		// 				}
-		// 			}
-		// 
-		// 			// check list of left adjacent server
-		// 			if(this->m_leftAdjacentServerConnection != nullptr)
-		// 			{
-		// 				for(const std::string targetClientIdentifier : this->m_leftAdjacentServerConnectedClients)
-		// 				{
-		// 					if(targetClientIdentifier == inMessageToSend.viewDestinationIdentifier())
-		// 					{
-		// 						this->m_UDPsocket.send_to(
-		// 							boost::asio::buffer(inMessageToSend.asCharVector()),
-		// 							this->m_leftAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
-		// 						return;
-		// 					}
-		// 					else
-		// 					{
-		// 						// Do nothing
-		// 					}
-		// 				}
-		// 			}
-		// 			else
-		// 			{
-		// 				// Do nothing, no left adjacent server
-		// 			}
-		// 
-		// 			// check list of right adjacent server
-		// 			if(this->m_rightAdjacentServerConnection != nullptr)
-		// 			{
-		// 				for(const std::string targetClientIdentifier : this->m_rightAdjacentServerConnectedClients)
-		// 				{
-		// 					if(targetClientIdentifier == inMessageToSend.viewDestinationIdentifier())
-		// 					{
-		// 						this->m_UDPsocket.send_to(
-		// 							boost::asio::buffer(inMessageToSend.asCharVector()),
-		// 							this->m_rightAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
-		// 						return;
-		// 					}
-		// 				}
-		// 			}
-		// 			else
-		// 			{
-		// 				// Do nothing, no right adjacent server
-		// 			}
-		// 
-		// 			std::cout << "Message dropped. Client \"" << inMessageToSend.viewDestinationIdentifier() << "\" was not found." << std::endl;
-		// 			for(const remoteConnection& targetClient : this->m_connectedClients)
-		// 			{
-		// 				if(targetClient.viewIdentifier() == inMessageToSend.viewSourceIdentifier())
-		// 				{
-		// 					// Change the message type so we can inform
-		// 					// the original sender that the destination client
-		// 					// wasn't found
-		// 					inMessageToSend.setMessageType(
-		// 						constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND);
-		// 
-		// 					this->m_UDPsocket.send_to(
-		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
-		// 						targetClient.viewEndpoint(), 0, ignoredError);
-		// 					return;
-		// 				}
-		// 				else
-		// 				{
-		// 					// Do nothing, target is not the sender
-		// 				}
-		// 			}
-		// 		}
+		// #TODO_MT implement
 	}
-	catch(std::exception& exception)
-	{
-		// std::cout << exception.what() << std::endl;
-	}
-};
-
-//--------------------------------------------------------------- relayBluetooth
-// Implementation notes:
-//  Relay over Bluetooth
-//------------------------------------------------------------------------------
-void server::relayBluetooth(
-	const dataMessage& inMessageToSend)
-{
-	// #TODO implement Bluetooth relay
 };
 
 //------------------------------------------------------------- sendSyncPayloads
@@ -590,13 +476,16 @@ void server::removeClientConnection(
 	}
 };
 
-//------------------------------------------------------------ addToMessageQueue
+//------------------------------------------------------------- addToMessageList
 // Implementation notes:
-//  Add a new message to the message queue
+//  Add a new message to the message list
 //------------------------------------------------------------------------------
-void server::addToMessageQueue(
-	const dataMessage& message)
+void server::addToMessageList(
+	dataMessage message)
 {
-	this->m_messageQueue.push(
+	message.setMessageType(
+		constants::MessageType::mt_SERVER_SEND);
+
+	this->m_messageList.push_back(
 		message);
 };

@@ -55,6 +55,9 @@ public:
 
 private:
 	
+	// #TODO_AH fix me
+	void getLoop();
+
 	//---------------------------------------------------------------- inputLoop
 	// Brief Description
 	//  Input loop for getting input from the user via command line. The input

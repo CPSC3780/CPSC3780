@@ -70,6 +70,18 @@ public:
 	//--------------------------------------------------------------------------
 	const constants::MessageType& viewMessageType() const;
 
+	//----------------------------------------------------------- setMessageType
+	// Brief Description
+	//  Sets the message type to the inMessageType for this object.
+	//
+	// Method:    setMessageType
+	// FullName:  dataMessage::setMessageType
+	// Access:    public 
+	// Returns:   void
+	// Parameter: const constants::MessageType& inMessageType
+	//--------------------------------------------------------------------------
+	void setMessageType(
+		const constants::MessageType& inMessageType);
 	//----------------------------------------------------- viewSourceIdentifier
 	// Brief Description
 	//  Returns a const reference to the source identifier string. This will

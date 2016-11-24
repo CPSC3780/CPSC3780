@@ -95,6 +95,16 @@ const constants::MessageType& dataMessage::viewMessageType() const
 	return this->m_messageType;
 };
 
+//--------------------------------------------------------------- setMessageType
+// Implementation notes:
+//  Sets the messageType to the inMessageType for this object
+//------------------------------------------------------------------------------
+void dataMessage::setMessageType(
+	const constants::MessageType& inMessageType)
+{
+	this->m_messageType = inMessageType;
+};
+
 //--------------------------------------------------------- viewSourceIdentifier
 // Implementation notes:
 //  Returns a const reference to the sourceIdentifier string
@@ -151,24 +161,34 @@ const std::string dataMessage::viewMessageTypeAsString() const
 			messageTypeAsString = "client disconnect";
 			break;
 		}
-		case constants::MessageType::mt_CLIENT_PRIVATE_CHAT:
+		case constants::MessageType::mt_CLIENT_SEND:
 		{
-			messageTypeAsString = "private chat";
+			messageTypeAsString = "client send";
 			break;
 		}
-		case constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND:
+		case constants::MessageType::mt_CLIENT_GET:
 		{
-			messageTypeAsString = "target not found";
+			messageTypeAsString = "client get";
 			break;
 		}
-		case constants::MessageType::mt_RELAY_CHAT:
+		case constants::MessageType::mt_CLIENT_ACK:
 		{
-			messageTypeAsString = "relay chat";
+			messageTypeAsString = "client ack";
+			break;
+		}
+		case constants::MessageType::mt_SERVER_SEND:
+		{
+			messageTypeAsString = "server send";
+			break;
+		}
+		case constants::MessageType::mt_SERVER_ACK:
+		{
+			messageTypeAsString = "server ack";
 			break;
 		}
 		case constants::MessageType::mt_SERVER_SYNC:
 		{
-			messageTypeAsString = "sync";
+			messageTypeAsString = "server sync";
 			break;
 		}
 		case constants::MessageType::mt_PING:
@@ -202,22 +222,32 @@ const constants::MessageType dataMessage::stringToMessageType(
 		return constants::MessageType::mt_CLIENT_DISCONNECT;
 	}
 
-	if(inMessageTypeAsString == "private chat")
+	if(inMessageTypeAsString == "client send")
 	{
-		return constants::MessageType::mt_CLIENT_PRIVATE_CHAT;
+		return constants::MessageType::mt_CLIENT_SEND;
 	}
 
-	if(inMessageTypeAsString == "target not found")
+	if(inMessageTypeAsString == "client get")
 	{
-		return constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND;
+		return constants::MessageType::mt_CLIENT_GET;
 	}
 
-	if(inMessageTypeAsString == "relay chat")
+	if(inMessageTypeAsString == "client ack")
 	{
-		return constants::MessageType::mt_RELAY_CHAT;
+		return constants::MessageType::mt_CLIENT_ACK;
 	}
 
-	if(inMessageTypeAsString == "sync")
+	if(inMessageTypeAsString == "server send")
+	{
+		return constants::MessageType::mt_SERVER_SEND;
+	}
+
+	if(inMessageTypeAsString == "server ack")
+	{
+		return constants::MessageType::mt_SERVER_ACK;
+	}
+
+	if(inMessageTypeAsString == "server sync")
 	{
 		return constants::mt_SERVER_SYNC;
 	}

@@ -69,6 +69,10 @@ client::client(
 //------------------------------------------------------------------------------
 void client::run()
 {
+	// thread for getting the server to relay messages to this client
+	this->m_threads.create_thread(
+		boost::bind(&client::getLoop, this));
+
 	// thread for input/sending messages
 	this->m_threads.create_thread(
 		boost::bind(&client::inputLoop, this));
@@ -78,6 +82,31 @@ void client::run()
 		boost::bind(&client::receiveLoop, this));
 
 	this->m_threads.join_all();
+}
+
+//---------------------------------------------------------------------- getLoop
+// Implementation notes:
+//  The client periodically sends a get to the server, which will cause the
+//  server to send all messages destined for this client.
+//------------------------------------------------------------------------------
+void client::getLoop()
+{
+	while(!this->m_terminate)
+	{
+		dataMessage connectionMessage(
+			constants::mt_CLIENT_GET,
+			this->m_username,
+			constants::serverIndexToServerName(this->m_serverIndex),
+			"blank");
+
+		this->sendOverUDP(
+			connectionMessage);
+
+		// sleep
+		boost::this_thread::sleep(
+			boost::posix_time::millisec(
+			constants::updateIntervalMilliseconds));
+	}
 };
 
 //-------------------------------------------------------------------- inputLoop
@@ -98,7 +127,7 @@ void client::inputLoop()
 		// By default, destination and message type are "broadcast"
 		// and "chat", respectively
 		std::string destination = "broadcast";
-		constants::MessageType messageType = constants::MessageType::mt_RELAY_CHAT;
+		constants::MessageType messageType = constants::MessageType::mt_UNDEFINED;
 
 		std::stringstream ss;
 		ss << chatInput;
@@ -106,13 +135,18 @@ void client::inputLoop()
 		std::string temp("");
 		ss >> temp;
 
-		if(temp == "/message")
+		if((temp == "/message") || (temp == "/m"))
 		{
 			std::string actualMessage("");
 			ss >> destination;
 			
 			std::getline(ss, chatInput);
-			messageType = constants::MessageType::mt_CLIENT_PRIVATE_CHAT;
+			messageType = constants::MessageType::mt_CLIENT_SEND;
+		}
+		else
+		{
+			std::cout << "Invalid command. (Use '/m' || '/message' <target> <message>" << std::endl;
+			continue;
 		}
 
 		dataMessage currentMessage(
@@ -129,14 +163,12 @@ void client::inputLoop()
 				this->m_username + " has disconnected.";
 
 			dataMessage currentMessage(
-				constants::mt_CLIENT_DISCONNECT,
+				constants::MessageType::mt_CLIENT_DISCONNECT,
 				this->m_username,
 				destination,
 				disconnectMessage);
 
 			this->sendOverUDP(currentMessage);
-
-			continue;
 		}
 		else
 		{
@@ -226,32 +258,53 @@ void client::receiveOverUDP()
 
 			switch(messageType)
 			{
+				case constants::MessageType::mt_UNDEFINED:
+				{
+					assert(false);
+					break;
+				}
 				case constants::MessageType::mt_CLIENT_CONNECT:
 				{
-					std::cout << message.viewPayload() << std::endl;
+					assert(false);
 					break;
 				}
 				case constants::MessageType::mt_CLIENT_DISCONNECT:
 				{
-					// Do nothing
+					assert(false);
 					break;
 				}
-				case constants::MessageType::mt_CLIENT_PRIVATE_CHAT:
+				case constants::MessageType::mt_CLIENT_SEND:
 				{
-					std::cout << "(Private) " << message.viewSourceIdentifier()
+					assert(false);
+					break;
+				}
+				case constants::MessageType::mt_CLIENT_GET:
+				{
+					assert(false);
+					break;
+				}
+				case constants::MessageType::mt_CLIENT_ACK:
+				{
+					assert(false);
+					break;
+				}
+				case constants::MessageType::mt_SERVER_SEND:
+				{
+					std::cout << message.viewSourceIdentifier()
 						<< " says: " << message.viewPayload() << std::endl;
+
+					dataMessage ackMessage(
+						constants::mt_CLIENT_ACK,
+						this->m_username,
+						constants::serverIndexToServerName(this->m_serverIndex),
+						"blank");
+
+					this->sendOverUDP(ackMessage);
 					break;
 				}
-				case constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND:
+				case constants::MessageType::mt_SERVER_ACK:
 				{
-					std::cout << "Server: Could not deliver message to \"" 
-						<< message.viewDestinationIdentifier() << "\"" << std::endl;
-					break;
-				}
-				case constants::MessageType::mt_RELAY_CHAT:
-				{
-					std::cout << message.viewSourceIdentifier() << " says: "
-						<< message.viewPayload() << std::endl;
+					assert(false);
 					break;
 				}
 				case constants::MessageType::mt_SERVER_SYNC:
