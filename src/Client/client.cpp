@@ -23,16 +23,16 @@ client::client(
 	boost::asio::io_service& ioService) :
 	m_resolver(ioService),
 	m_UDPsocket(ioService),
-	m_serverPort(inServerPort)
+	m_serverPort(inServerPort),
+	m_terminate(false),
+	m_sequenceNumber(0)
 {
 	this->m_username = inUsername;
 	this->m_serverIndex = inServerIndex;
-	this->m_terminate = false;
 
 	this->m_activeProtocol =
 		client::Protocol::p_UDP;
 
-	// #TODO can be hardcoded to lan ip, should make this dynamic
 	const std::string serverAddress = 
 		constants::serverHostName(this->m_serverIndex);
 
@@ -50,15 +50,15 @@ client::client(
 	this->m_UDPsocket.open(
 		boost::asio::ip::udp::v4());
 
+	std::string destination = constants::serverIndexToServerName(this->m_serverIndex);
 	std::string initiateMessage = this->m_username + " has connected.";
-	std::string source = this->m_username;
-	std::string destination = "broadcast";
 
 	dataMessage connectionMessage(
-		initiateMessage,
-		source,
+		this->sequenceNumber(),
+		constants::mt_CLIENT_CONNECT,
+		this->m_username,
 		destination,
-		constants::mt_CLIENT_CONNECT);
+		initiateMessage);
 
 	this->sendOverUDP(
 		connectionMessage);
@@ -71,6 +71,10 @@ client::client(
 //------------------------------------------------------------------------------
 void client::run()
 {
+	// thread for getting the server to relay messages to this client
+	this->m_threads.create_thread(
+		boost::bind(&client::getLoop, this));
+
 	// thread for input/sending messages
 	this->m_threads.create_thread(
 		boost::bind(&client::inputLoop, this));
@@ -80,6 +84,32 @@ void client::run()
 		boost::bind(&client::receiveLoop, this));
 
 	this->m_threads.join_all();
+}
+
+//---------------------------------------------------------------------- getLoop
+// Implementation notes:
+//  The client periodically sends a get to the server, which will cause the
+//  server to send all messages destined for this client.
+//------------------------------------------------------------------------------
+void client::getLoop()
+{
+	while(!this->m_terminate)
+	{
+		dataMessage connectionMessage(
+			this->sequenceNumber(),
+			constants::mt_CLIENT_GET,
+			this->m_username,
+			constants::serverIndexToServerName(this->m_serverIndex),
+			"blank");
+
+		this->sendOverUDP(
+			connectionMessage);
+
+		// sleep
+		boost::this_thread::sleep(
+			boost::posix_time::millisec(
+			constants::updateIntervalMilliseconds));
+	}
 };
 
 //-------------------------------------------------------------------- inputLoop
@@ -100,7 +130,7 @@ void client::inputLoop()
 		// By default, destination and message type are "broadcast"
 		// and "chat", respectively
 		std::string destination = "broadcast";
-		constants::MessageType messageType = constants::MessageType::mt_RELAY_CHAT;
+		constants::MessageType messageType = constants::MessageType::mt_UNDEFINED;
 
 		std::stringstream ss;
 		ss << chatInput;
@@ -108,20 +138,26 @@ void client::inputLoop()
 		std::string temp("");
 		ss >> temp;
 
-		if(temp == "/message")
+		if((temp == "/message") || (temp == "/m"))
 		{
 			std::string actualMessage("");
 			ss >> destination;
 			
 			std::getline(ss, chatInput);
-			messageType = constants::MessageType::mt_CLIENT_PRIVATE_CHAT;
+			messageType = constants::MessageType::mt_CLIENT_SEND;
+		}
+		else
+		{
+			std::cout << "Invalid command. (Use '/m' || '/message' <target> <message>" << std::endl;
+			continue;
 		}
 
 		dataMessage currentMessage(
-			chatInput,
+			this->sequenceNumber(),
+			messageType,
 			this->m_username,
 			destination,
-			messageType);
+			chatInput);
 
 		if(currentMessage.viewPayload() == "/exit")
 		{
@@ -131,14 +167,13 @@ void client::inputLoop()
 				this->m_username + " has disconnected.";
 
 			dataMessage currentMessage(
-				disconnectMessage,
+				this->sequenceNumber(),
+				constants::MessageType::mt_CLIENT_DISCONNECT,
 				this->m_username,
 				destination,
-				constants::mt_CLIENT_DISCONNECT);
+				disconnectMessage);
 
 			this->sendOverUDP(currentMessage);
-
-			continue;
 		}
 		else
 		{
@@ -228,36 +263,57 @@ void client::receiveOverUDP()
 
 			switch(messageType)
 			{
+				case constants::MessageType::mt_UNDEFINED:
+				{
+					assert(false);
+					break;
+				}
 				case constants::MessageType::mt_CLIENT_CONNECT:
 				{
-					std::cout << message.viewPayload() << std::endl;
+					assert(false);
 					break;
 				}
 				case constants::MessageType::mt_CLIENT_DISCONNECT:
 				{
-					// Do nothing
+					assert(false);
 					break;
 				}
-				case constants::MessageType::mt_CLIENT_PRIVATE_CHAT:
+				case constants::MessageType::mt_CLIENT_SEND:
 				{
-					std::cout << "(Private) " << message.viewSourceIdentifier()
+					assert(false);
+					break;
+				}
+				case constants::MessageType::mt_CLIENT_GET:
+				{
+					assert(false);
+					break;
+				}
+				case constants::MessageType::mt_CLIENT_ACK:
+				{
+					assert(false);
+					break;
+				}
+				case constants::MessageType::mt_SERVER_SEND:
+				{
+					std::cout << message.viewSourceIdentifier()
 						<< " says: " << message.viewPayload() << std::endl;
+
+					dataMessage ackMessage(
+						message.viewSequenceNumber(),
+						constants::mt_CLIENT_ACK,
+						this->m_username,
+						constants::serverIndexToServerName(this->m_serverIndex),
+						"blank");
+
+					this->sendOverUDP(ackMessage);
 					break;
 				}
-				case constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND:
+				case constants::MessageType::mt_SERVER_ACK:
 				{
-					std::cout << "Server: Could not deliver message to \"" 
-						<< message.viewDestinationIdentifier() << "\"" << std::endl;
+					assert(false);
 					break;
 				}
-				case constants::MessageType::mt_RELAY_CHAT:
-				{
-					std::cout << message.viewSourceIdentifier() << " says: "
-						<< message.viewPayload() << std::endl;
-					break;
-				}
-				case constants::MessageType::mt_SERVER_SYNC_LEFT:
-				case constants::MessageType::mt_SERVER_SYNC_RIGHT:
+				case constants::MessageType::mt_SERVER_SYNC:
 				{
 					// Syncs are only used by servers, never by clients
 					assert(false);
@@ -295,4 +351,13 @@ void client::receiveOverUDP()
 void client::receiveOverBluetooth()
 {
 	// #TODO implement receiving over Bluetooth for the client
+};
+
+//--------------------------------------------------------------- sequenceNumber
+// Implementation notes:
+//  #TODO_AH fix me
+//------------------------------------------------------------------------------
+const int64_t& client::sequenceNumber()
+{
+	return ++this->m_sequenceNumber;
 };

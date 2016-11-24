@@ -10,13 +10,15 @@
 namespace constants
 {
 	const uint16_t updateIntervalMilliseconds = 50;
-	const uint16_t syncIntervalMilliseconds = 2000;
+	const uint16_t syncIntervalMilliseconds = 1500;
 
 	const std::vector<uint16_t> serverListeningPorts(
 	{8080, 8081, 8082, 8083, 8084});
 
 	const int8_t highestServerIndex = 
 		(static_cast<int8_t>(constants::serverListeningPorts.size()) - 1);
+
+	const int8_t numberOfServers = 5;
 
 	const std::vector<std::string> serverNames(
 	{"Alpha", "Bravo", "Charlie", "Delta", "Echo"});
@@ -150,12 +152,12 @@ namespace constants
 		mt_UNDEFINED = 0,
 		mt_CLIENT_CONNECT = 1,
 		mt_CLIENT_DISCONNECT = 2,
-		mt_CLIENT_PRIVATE_CHAT = 3,
-		mt_CLIENT_TARGET_NOT_FOUND = 4,
-		mt_RELAY_CHAT = 5,
-		mt_SERVER_RELAY_CHAT = 6,
-		mt_SERVER_SYNC_LEFT = 7,
-		mt_SERVER_SYNC_RIGHT = 8,
+		mt_CLIENT_SEND = 3,
+		mt_CLIENT_GET = 4,
+		mt_CLIENT_ACK = 5,
+		mt_SERVER_SEND = 6,
+		mt_SERVER_ACK = 7,
+		mt_SERVER_SYNC = 8,
 		mt_PING = 9,
 	};
 }

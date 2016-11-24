@@ -11,16 +11,18 @@
 //  Used to create a data message object to send
 //------------------------------------------------------------------------------
 dataMessage::dataMessage(
-	const std::string& inPayload,
+	const int64_t& inSequenceNumber,
+	const constants::MessageType& inMessageType,
 	const std::string& inSourceID,
-	const std::string& inDestinationID = "broadcast",
-	const constants::MessageType& inMessageType = constants::MessageType::mt_RELAY_CHAT)
+	const std::string& inDestinationID,
+	const std::string& inPayload)
 {
-	this->m_payload = inPayload;
+	this->m_sequenceNumber = inSequenceNumber;
+	this->m_messageType = inMessageType;
 	this->m_sourceIdentifier = inSourceID;
 	this->m_destinationIdentifier = inDestinationID;
-	this->m_messageType = inMessageType;
-	this->m_relayToAdjacentServers = true;
+	this->m_payload = inPayload;
+	this->m_serverSyncPayloadOriginIndex = -1;
 };
 
 //------------------------------------------------------------------ constructor
@@ -28,16 +30,19 @@ dataMessage::dataMessage(
 //  Used to create a data message object to send
 //------------------------------------------------------------------------------
 dataMessage::dataMessage(
-	const std::vector<remoteConnection>& inServerSyncPayload,
+	const int64_t& inSequenceNumber,
+	const constants::MessageType& inMessageType,
 	const std::string& inSourceID,
-	const std::string& inDestinationID = "broadcast",
-	const constants::MessageType& inMessageType = constants::MessageType::mt_RELAY_CHAT)
+	const std::string& inDestinationID,
+	const std::vector<std::string>& inServerSyncPayload,
+	const int8_t& inServerSyncPayloadOriginIndex)
 {
-	this->m_payload = dataMessage::createServerSyncPayload(inServerSyncPayload);
-	this->m_sourceIdentifier = inSourceID + " Server";
-	this->m_destinationIdentifier = inDestinationID;
+	this->m_sequenceNumber = inSequenceNumber;
 	this->m_messageType = inMessageType;
-	this->m_relayToAdjacentServers = true;
+	this->m_sourceIdentifier = inSourceID;
+	this->m_destinationIdentifier = inDestinationID;
+	this->m_payload = dataMessage::createServerSyncPayload(inServerSyncPayload);
+	this->m_serverSyncPayloadOriginIndex = inServerSyncPayloadOriginIndex;
 };
 
 //------------------------------------------------------------------ constructor
@@ -51,7 +56,12 @@ dataMessage::dataMessage(
 		inCharVector.begin(),
 		inCharVector.end());
 
-	this->m_payload = asString.substr(0, asString.find(constants::messageDelimiter()));
+	std::string sequenceNumberAsString = asString.substr(0, asString.find(constants::messageDelimiter()));
+	this->m_sequenceNumber = std::stoi(sequenceNumberAsString);
+	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
+
+	std::string messageType = asString.substr(0, asString.find(constants::messageDelimiter()));
+	this->m_messageType = this->stringToMessageType(messageType);
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 
 	this->m_sourceIdentifier = asString.substr(0, asString.find(constants::messageDelimiter()));
@@ -60,22 +70,40 @@ dataMessage::dataMessage(
 	this->m_destinationIdentifier = asString.substr(0, asString.find(constants::messageDelimiter()));
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 
-	std::string messageType = asString.substr(0, asString.find(constants::messageDelimiter()));
-	this->m_messageType = this->stringToMessageType(messageType);
+	this->m_payload = asString.substr(0, asString.find(constants::messageDelimiter()));
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 
-	std::string relayStatusAsString = asString.substr(0, asString.find(constants::messageDelimiter()));
-	this->m_relayToAdjacentServers = static_cast<bool>(std::stoi(relayStatusAsString));
+	std::string serverSyncPayloadOriginIndexAsString = asString.substr(0, asString.find(constants::messageDelimiter()));
+	this->m_serverSyncPayloadOriginIndex = std::stoi(serverSyncPayloadOriginIndexAsString);
 	asString.erase(0, asString.find(constants::messageDelimiter()) + constants::messageDelimiter().length());
 };
 
-//------------------------------------------------------------------ viewPayload
+//----------------------------------------------------------- viewSequenceNumber
 // Implementation notes:
-//  Returns a const reference to the payload string
+//  #TODO_AH fix me
 //------------------------------------------------------------------------------
-const std::string& dataMessage::viewPayload() const
+const int64_t& dataMessage::viewSequenceNumber() const
 {
-	return this->m_payload;
+	return this->m_sequenceNumber;
+};
+
+//-------------------------------------------------------------- viewMessageType
+// Implementation notes:
+//  Returns a const reference to the message type
+//------------------------------------------------------------------------------
+const constants::MessageType& dataMessage::viewMessageType() const
+{
+	return this->m_messageType;
+};
+
+//--------------------------------------------------------------- setMessageType
+// Implementation notes:
+//  Sets the messageType to the inMessageType for this object
+//------------------------------------------------------------------------------
+void dataMessage::setMessageType(
+	const constants::MessageType& inMessageType)
+{
+	this->m_messageType = inMessageType;
 };
 
 //--------------------------------------------------------- viewSourceIdentifier
@@ -94,25 +122,24 @@ const std::string& dataMessage::viewSourceIdentifier() const
 const std::string& dataMessage::viewDestinationIdentifier() const
 {
 	return this->m_destinationIdentifier;
-}
-
-//--------------------------------------------------------------- setMessageType
-// Implementation notes:
-//  Sets the messageType to the inMessageType for this object
-//------------------------------------------------------------------------------
-void dataMessage::setMessageType(
-	const constants::MessageType& inMessageType)
-{
-	this->m_messageType = inMessageType;
 };
 
-//-------------------------------------------------------------- viewMessageType
+//------------------------------------------------------------------ viewPayload
 // Implementation notes:
-//  Returns a const reference to the message type
+//  Returns a const reference to the payload string
 //------------------------------------------------------------------------------
-const constants::MessageType& dataMessage::viewMessageType() const
+const std::string& dataMessage::viewPayload() const
 {
-	return this->m_messageType;
+	return this->m_payload;
+};
+
+//--------------------------------------------- viewServerSyncPayloadOriginIndex
+// Implementation notes:
+//  Returns a const reference to the payload string
+//------------------------------------------------------------------------------
+const int8_t& dataMessage::viewServerSyncPayloadOriginIndex() const
+{
+	return this->m_serverSyncPayloadOriginIndex;
 };
 
 //------------------------------------------------------ viewMessageTypeAsString
@@ -135,29 +162,34 @@ const std::string dataMessage::viewMessageTypeAsString() const
 			messageTypeAsString = "client disconnect";
 			break;
 		}
-		case constants::MessageType::mt_CLIENT_PRIVATE_CHAT:
+		case constants::MessageType::mt_CLIENT_SEND:
 		{
-			messageTypeAsString = "private chat";
+			messageTypeAsString = "client send";
 			break;
 		}
-		case constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND:
+		case constants::MessageType::mt_CLIENT_GET:
 		{
-			messageTypeAsString = "target not found";
+			messageTypeAsString = "client get";
 			break;
 		}
-		case constants::MessageType::mt_RELAY_CHAT:
+		case constants::MessageType::mt_CLIENT_ACK:
 		{
-			messageTypeAsString = "relay chat";
+			messageTypeAsString = "client ack";
 			break;
 		}
-		case constants::MessageType::mt_SERVER_SYNC_RIGHT:
+		case constants::MessageType::mt_SERVER_SEND:
 		{
-			messageTypeAsString = "sync right";
+			messageTypeAsString = "server send";
 			break;
 		}
-		case constants::MessageType::mt_SERVER_SYNC_LEFT:
+		case constants::MessageType::mt_SERVER_ACK:
 		{
-			messageTypeAsString = "sync left";
+			messageTypeAsString = "server ack";
+			break;
+		}
+		case constants::MessageType::mt_SERVER_SYNC:
+		{
+			messageTypeAsString = "server sync";
 			break;
 		}
 		case constants::MessageType::mt_PING:
@@ -172,7 +204,7 @@ const std::string dataMessage::viewMessageTypeAsString() const
 	}
 
 	return messageTypeAsString;
-}
+};
 
 //---------------------------------------------------------- stringToMessageType
 // Implementation notes:
@@ -191,29 +223,34 @@ const constants::MessageType dataMessage::stringToMessageType(
 		return constants::MessageType::mt_CLIENT_DISCONNECT;
 	}
 
-	if(inMessageTypeAsString == "private chat")
+	if(inMessageTypeAsString == "client send")
 	{
-		return constants::MessageType::mt_CLIENT_PRIVATE_CHAT;
+		return constants::MessageType::mt_CLIENT_SEND;
 	}
 
-	if(inMessageTypeAsString == "target not found")
+	if(inMessageTypeAsString == "client get")
 	{
-		return constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND;
+		return constants::MessageType::mt_CLIENT_GET;
 	}
 
-	if(inMessageTypeAsString == "relay chat")
+	if(inMessageTypeAsString == "client ack")
 	{
-		return constants::MessageType::mt_RELAY_CHAT;
+		return constants::MessageType::mt_CLIENT_ACK;
 	}
 
-	if(inMessageTypeAsString == "sync right")
+	if(inMessageTypeAsString == "server send")
 	{
-		return constants::mt_SERVER_SYNC_RIGHT;
+		return constants::MessageType::mt_SERVER_SEND;
 	}
 
-	if(inMessageTypeAsString == "sync left")
+	if(inMessageTypeAsString == "server ack")
 	{
-		return constants::mt_SERVER_SYNC_LEFT;
+		return constants::MessageType::mt_SERVER_ACK;
+	}
+
+	if(inMessageTypeAsString == "server sync")
+	{
+		return constants::mt_SERVER_SYNC;
 	}
 
 	if(inMessageTypeAsString == "ping")
@@ -231,14 +268,13 @@ const constants::MessageType dataMessage::stringToMessageType(
 //  Creates a string containing all the client names connected to the server.
 //------------------------------------------------------------------------------
 std::string dataMessage::createServerSyncPayload(
-	const std::vector<remoteConnection>& inSyncPayload)
+	const std::vector<std::string>& inServerSyncPayload)
 {
 	std::string constructedPayload("");
 
-	for(const remoteConnection& currentConnection : inSyncPayload)
+	for(const std::string& currentClient : inServerSyncPayload)
 	{
-		constructedPayload += currentConnection.viewIdentifier() 
-			+ constants::syncIdentifierDelimiter();
+		constructedPayload += currentClient + constants::syncIdentifierDelimiter();
 	}
 
 	return constructedPayload;
@@ -268,25 +304,6 @@ std::vector<std::string> dataMessage::viewServerSyncPayload() const
 	}
 
 	return outServerSyncPayload;
-}
-
-//------------------------------------------------------- relayToAdjacentServers
-// Implementation notes:
-//  Returns a const reference to the serverRelayStatus
-//------------------------------------------------------------------------------
-const bool& dataMessage::relayToAdjacentServers() const
-{
-	return this->m_relayToAdjacentServers;
-};
-
-//--------------------------------------------------------- setServerRelayStatus
-// Implementation notes:
-//  Sets the serverRelayStatus to the inServerRelayStatus
-//------------------------------------------------------------------------------
-void dataMessage::setServerRelayStatus(
-	const bool& inServerRelayStatus)
-{
-	this->m_relayToAdjacentServers = inServerRelayStatus;
 };
 
 //----------------------------------------------------------------- asVectorChar
@@ -296,11 +313,12 @@ void dataMessage::setServerRelayStatus(
 std::vector<char> dataMessage::asCharVector() const
 {
 	const std::string messageAsString(
-		this->m_payload + constants::messageDelimiter()
+		std::to_string(this->m_sequenceNumber) + constants::messageDelimiter()
+		+ this->viewMessageTypeAsString() + constants::messageDelimiter()
 		+ this->m_sourceIdentifier + constants::messageDelimiter()
 		+ this->m_destinationIdentifier + constants::messageDelimiter()
-		+ this->viewMessageTypeAsString() + constants::messageDelimiter()
-		+ std::to_string(this->m_relayToAdjacentServers) + constants::messageDelimiter());
+		+ this->m_payload + constants::messageDelimiter()
+		+ std::to_string(this->m_serverSyncPayloadOriginIndex) + constants::messageDelimiter());
 
 	return std::vector<char>(
 		messageAsString.begin(),

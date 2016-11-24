@@ -55,6 +55,9 @@ public:
 
 private:
 	
+	// #TODO_AH fix me
+	void getLoop();
+
 	//---------------------------------------------------------------- inputLoop
 	// Brief Description
 	//  Input loop for getting input from the user via command line. The input
@@ -128,6 +131,9 @@ private:
 	//--------------------------------------------------------------------------
 	void receiveOverBluetooth();
 
+	// #TODO_AH fix me
+	const int64_t& sequenceNumber();
+
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::asio::ip::udp::resolver m_resolver;
@@ -135,6 +141,7 @@ private:
 	boost::thread_group m_threads;
 	client::Protocol m_activeProtocol;
 	bool m_terminate;
+	int64_t m_sequenceNumber;
 	std::string m_username;
 	uint16_t m_serverPort;
 	int8_t m_serverIndex;
