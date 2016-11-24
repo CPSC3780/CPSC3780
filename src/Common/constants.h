@@ -9,7 +9,7 @@
 
 namespace constants
 {
-	const uint16_t updateIntervalMilliseconds = 50;
+	const uint16_t updateIntervalMilliseconds = 1000;
 	const uint16_t syncIntervalMilliseconds = 1500;
 
 	const std::vector<uint16_t> serverListeningPorts(

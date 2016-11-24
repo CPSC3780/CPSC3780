@@ -285,7 +285,7 @@ void server::removeReceivedMessageFromList(
 		it != this->m_messageList.end();
 		it++)
 	{
-		if(it->viewSequenceNumber()== inMessage.viewSequenceNumber())
+		if(it->viewSequenceNumber() == inMessage.viewSequenceNumber())
 		{
 			this->m_messageList.erase(it);
 			break;
@@ -450,23 +450,8 @@ const int64_t& server::sequenceNumber()
 void server::receiveClientsFromAdjacentServers(
 	const dataMessage& inSyncMessage)
 {
-	switch(inSyncMessage.viewMessageType())
-	{
-		case constants::MessageType::mt_SERVER_SYNC:
-		{
-			this->m_clientsServedByServerIndex[inSyncMessage.viewServerSyncPayloadOriginIndex()] =
-				inSyncMessage.viewServerSyncPayload();
-
-			break;
-		}
-		default:
-		{
-			// should never make it here, programming error if this happens
-			assert(false);
-			break;
-		}
-
-	}
+	this->m_clientsServedByServerIndex[inSyncMessage.viewServerSyncPayloadOriginIndex()] =
+		inSyncMessage.viewServerSyncPayload();
 };
 
 //---------------------------------------------------------- addClientConnection
@@ -488,13 +473,13 @@ void server::addClientConnection(
 void server::removeClientConnection(
 	const std::string& inClientUsername)
 {
-	for(std::vector<remoteConnection>::iterator currentClient = this->m_connectedClients.begin();
-		currentClient != this->m_connectedClients.end();
-		++currentClient)
+	for(std::vector<remoteConnection>::iterator it = this->m_connectedClients.begin();
+		it != this->m_connectedClients.end();
+		it++)
 	{
-		if(currentClient->viewIdentifier() == inClientUsername)
+		if(it->viewIdentifier() == inClientUsername)
 		{
-			this->m_connectedClients.erase(currentClient);
+			this->m_connectedClients.erase(it);
 		}
 		break;
 	}
