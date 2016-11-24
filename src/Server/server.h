@@ -197,7 +197,7 @@ private:
 	boost::thread_group m_threads;
 
 	bool m_terminate;
-	uint64_t m_sequenceNumber;
+	int64_t m_sequenceNumber;
 
 	std::queue<dataMessage> m_messageQueue;
 
