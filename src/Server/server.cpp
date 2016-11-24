@@ -27,12 +27,11 @@ server::server(
 		inListeningPort)),
 	m_index(inServerIndex),
 	m_terminate(false),
+	m_sequenceNumber(0),
 	m_leftAdjacentServerIndex(inServerIndex - 1),
 	m_leftAdjacentServerConnection(nullptr),
-	m_leftAdjacentServerConnectedClients({}),
 	m_rightAdjacentServerIndex(inServerIndex + 1),
-	m_rightAdjacentServerConnection(nullptr),
-	m_rightAdjacentServerConnectedClients({})
+	m_rightAdjacentServerConnection(nullptr)
 {
 	const std::string serverName(
 		constants::serverIndexToServerName(inServerIndex));
@@ -118,7 +117,7 @@ void server::run()
 
 	// thread for syncing adjacent servers
 	this->m_threads.create_thread(
-		boost::bind(&server::sendClientsToAdjacentServers, this));
+		boost::bind(&server::sendSyncPayloads, this));
 
 	this->m_threads.join_all();
 };
@@ -161,31 +160,17 @@ void server::listenLoop()
 			{
 				case constants::MessageType::mt_CLIENT_CONNECT:
 				{
-					if(message.relayToAdjacentServers())
-					{
-						this->addClientConnection(
-							message.viewSourceIdentifier(),
-							clientEndpoint);
-					}
-					else
-					{
-						// Do nothing, connection relay is only
-						// for display purposes client side
-					}
+					this->addClientConnection(
+						message.viewSourceIdentifier(),
+						clientEndpoint);
+
 					break;
 				}
 				case constants::MessageType::mt_CLIENT_DISCONNECT:
 				{
-					if(message.relayToAdjacentServers())
-					{
-						this->removeClientConnection(
-							message.viewSourceIdentifier());
-					}
-					else
-					{
-						// Do nothing, disconnect relay is only
-						// for display purposes client side
-					}
+
+					this->removeClientConnection(
+						message.viewSourceIdentifier());
 					break;
 				}
 				case constants::MessageType::mt_RELAY_CHAT:
@@ -198,8 +183,7 @@ void server::listenLoop()
 					// Do nothing
 					break;
 				}
-				case constants::MessageType::mt_SERVER_SYNC_RIGHT:
-				case constants::MessageType::mt_SERVER_SYNC_LEFT:
+				case constants::MessageType::mt_SERVER_SYNC:
 				{
 					this->receiveClientsFromAdjacentServers(
 						message);
@@ -217,7 +201,6 @@ void server::listenLoop()
 		}
 		catch(std::exception& exception)
 		{
-			// #TODO_AH consider for debug only
 			// std::cout << exception.what() << std::endl;
 		}
 	}
@@ -257,143 +240,143 @@ void server::relayUDP(
 	{
 		boost::system::error_code ignoredError;
 
-		if(inMessageToSend.viewDestinationIdentifier() == "broadcast")
-		{
-
-			// If broadcast, send to all connected clients except sender
-			for(const remoteConnection& targetClient : this->m_connectedClients)
-			{
-				if(targetClient.viewIdentifier() != inMessageToSend.viewSourceIdentifier())
-				{
-					this->m_UDPsocket.send_to(
-						boost::asio::buffer(inMessageToSend.asCharVector()),
-						targetClient.viewEndpoint(), 0, ignoredError);
-				}
-				else
-				{
-					// Do nothing, don't broadcast back to sender
-				}
-			}
-
-			if(inMessageToSend.relayToAdjacentServers())
-			{
-				// Change the server relay status to avoid an infinite loop
-				inMessageToSend.setServerRelayStatus(
-					false);
-
-				// Also relay to left adjacent server
-				if(this->m_leftAdjacentServerConnection != nullptr)
-				{
-					this->m_UDPsocket.send_to(
-						boost::asio::buffer(inMessageToSend.asCharVector()),
-						this->m_leftAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
-				}
-				else
-				{
-					// Do nothing, no valid left adjacent server
-				}
-
-				// Also relay to right adjacent server
-				if(this->m_rightAdjacentServerConnection != nullptr)
-				{
-					this->m_UDPsocket.send_to(
-						boost::asio::buffer(inMessageToSend.asCharVector()),
-						this->m_rightAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
-				}
-				else
-				{
-					// Do nothing, no valid left adjacent server
-				}
-			}
-			else
-			{
-				// Do nothing, don't relay back to server that sent it
-			}
-		}
-		else
-		{
-			// if not broadcast, it's a private message, send only to the matched client
-
-			// check list of directly connect clients first
-			for(const remoteConnection& targetClient : this->m_connectedClients)
-			{
-				if(targetClient.viewIdentifier() == inMessageToSend.viewDestinationIdentifier())
-				{
-					this->m_UDPsocket.send_to(
-						boost::asio::buffer(inMessageToSend.asCharVector()),
-						targetClient.viewEndpoint(), 0, ignoredError);
-					return;
-				}
-				else
-				{
-					// Do nothing
-				}
-			}
-
-			// check list of left adjacent server
-			if(this->m_leftAdjacentServerConnection != nullptr)
-			{
-				for(const std::string targetClientIdentifier : this->m_leftAdjacentServerConnectedClients)
-				{
-					if(targetClientIdentifier == inMessageToSend.viewDestinationIdentifier())
-					{
-						this->m_UDPsocket.send_to(
-							boost::asio::buffer(inMessageToSend.asCharVector()),
-							this->m_leftAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
-						return;
-					}
-					else
-					{
-						// Do nothing
-					}
-				}
-			}
-			else
-			{
-				// Do nothing, no left adjacent server
-			}
-
-			// check list of right adjacent server
-			if(this->m_rightAdjacentServerConnection != nullptr)
-			{
-				for(const std::string targetClientIdentifier : this->m_rightAdjacentServerConnectedClients)
-				{
-					if(targetClientIdentifier == inMessageToSend.viewDestinationIdentifier())
-					{
-						this->m_UDPsocket.send_to(
-							boost::asio::buffer(inMessageToSend.asCharVector()),
-							this->m_rightAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
-						return;
-					}
-				}
-			}
-			else
-			{
-				// Do nothing, no right adjacent server
-			}
-
-			std::cout << "Message dropped. Client \"" << inMessageToSend.viewDestinationIdentifier() << "\" was not found." << std::endl;
-			for(const remoteConnection& targetClient : this->m_connectedClients)
-			{
-				if(targetClient.viewIdentifier() == inMessageToSend.viewSourceIdentifier())
-				{
-					// Change the message type so we can inform
-					// the original sender that the destination client
-					// wasn't found
-					inMessageToSend.setMessageType(
-						constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND);
-
-					this->m_UDPsocket.send_to(
-						boost::asio::buffer(inMessageToSend.asCharVector()),
-						targetClient.viewEndpoint(), 0, ignoredError);
-					return;
-				}
-				else
-				{
-					// Do nothing, target is not the sender
-				}
-			}
-		}
+		// 		if(inMessageToSend.viewDestinationIdentifier() == "broadcast")
+		// 		{
+		// 
+		// 			// If broadcast, send to all connected clients except sender
+		// 			for(const remoteConnection& targetClient : this->m_connectedClients)
+		// 			{
+		// 				if(targetClient.viewIdentifier() != inMessageToSend.viewSourceIdentifier())
+		// 				{
+		// 					this->m_UDPsocket.send_to(
+		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
+		// 						targetClient.viewEndpoint(), 0, ignoredError);
+		// 				}
+		// 				else
+		// 				{
+		// 					// Do nothing, don't broadcast back to sender
+		// 				}
+		// 			}
+		// 
+		// 			if(inMessageToSend.relayToAdjacentServers())
+		// 			{
+		// 				// Change the server relay status to avoid an infinite loop
+		// 				inMessageToSend.setServerRelayStatus(
+		// 					false);
+		// 
+		// 				// Also relay to left adjacent server
+		// 				if(this->m_leftAdjacentServerConnection != nullptr)
+		// 				{
+		// 					this->m_UDPsocket.send_to(
+		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
+		// 						this->m_leftAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+		// 				}
+		// 				else
+		// 				{
+		// 					// Do nothing, no valid left adjacent server
+		// 				}
+		// 
+		// 				// Also relay to right adjacent server
+		// 				if(this->m_rightAdjacentServerConnection != nullptr)
+		// 				{
+		// 					this->m_UDPsocket.send_to(
+		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
+		// 						this->m_rightAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+		// 				}
+		// 				else
+		// 				{
+		// 					// Do nothing, no valid left adjacent server
+		// 				}
+		// 			}
+		// 			else
+		// 			{
+		// 				// Do nothing, don't relay back to server that sent it
+		// 			}
+		// 		}
+		// 		else
+		// 		{
+		// 			// if not broadcast, it's a private message, send only to the matched client
+		// 
+		// 			// check list of directly connect clients first
+		// 			for(const remoteConnection& targetClient : this->m_connectedClients)
+		// 			{
+		// 				if(targetClient.viewIdentifier() == inMessageToSend.viewDestinationIdentifier())
+		// 				{
+		// 					this->m_UDPsocket.send_to(
+		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
+		// 						targetClient.viewEndpoint(), 0, ignoredError);
+		// 					return;
+		// 				}
+		// 				else
+		// 				{
+		// 					// Do nothing
+		// 				}
+		// 			}
+		// 
+		// 			// check list of left adjacent server
+		// 			if(this->m_leftAdjacentServerConnection != nullptr)
+		// 			{
+		// 				for(const std::string targetClientIdentifier : this->m_leftAdjacentServerConnectedClients)
+		// 				{
+		// 					if(targetClientIdentifier == inMessageToSend.viewDestinationIdentifier())
+		// 					{
+		// 						this->m_UDPsocket.send_to(
+		// 							boost::asio::buffer(inMessageToSend.asCharVector()),
+		// 							this->m_leftAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+		// 						return;
+		// 					}
+		// 					else
+		// 					{
+		// 						// Do nothing
+		// 					}
+		// 				}
+		// 			}
+		// 			else
+		// 			{
+		// 				// Do nothing, no left adjacent server
+		// 			}
+		// 
+		// 			// check list of right adjacent server
+		// 			if(this->m_rightAdjacentServerConnection != nullptr)
+		// 			{
+		// 				for(const std::string targetClientIdentifier : this->m_rightAdjacentServerConnectedClients)
+		// 				{
+		// 					if(targetClientIdentifier == inMessageToSend.viewDestinationIdentifier())
+		// 					{
+		// 						this->m_UDPsocket.send_to(
+		// 							boost::asio::buffer(inMessageToSend.asCharVector()),
+		// 							this->m_rightAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+		// 						return;
+		// 					}
+		// 				}
+		// 			}
+		// 			else
+		// 			{
+		// 				// Do nothing, no right adjacent server
+		// 			}
+		// 
+		// 			std::cout << "Message dropped. Client \"" << inMessageToSend.viewDestinationIdentifier() << "\" was not found." << std::endl;
+		// 			for(const remoteConnection& targetClient : this->m_connectedClients)
+		// 			{
+		// 				if(targetClient.viewIdentifier() == inMessageToSend.viewSourceIdentifier())
+		// 				{
+		// 					// Change the message type so we can inform
+		// 					// the original sender that the destination client
+		// 					// wasn't found
+		// 					inMessageToSend.setMessageType(
+		// 						constants::MessageType::mt_CLIENT_TARGET_NOT_FOUND);
+		// 
+		// 					this->m_UDPsocket.send_to(
+		// 						boost::asio::buffer(inMessageToSend.asCharVector()),
+		// 						targetClient.viewEndpoint(), 0, ignoredError);
+		// 					return;
+		// 				}
+		// 				else
+		// 				{
+		// 					// Do nothing, target is not the sender
+		// 				}
+		// 			}
+		// 		}
 	}
 	catch(std::exception& exception)
 	{
@@ -411,72 +394,132 @@ void server::relayBluetooth(
 	// #TODO implement Bluetooth relay
 };
 
-//------------------------------------------------- sendClientsToAdjacentServers
+//------------------------------------------------------------- sendSyncPayloads
 // Implementation notes:
-//  Sends the list of clients connected to this server to the adjacent servers.
-//  Current implementation makes a new connection with each server on every
-//  iteration of the loop, could be made much more efficient.
+//  #TODO_AH fix me
 //------------------------------------------------------------------------------
-void server::sendClientsToAdjacentServers()
+void server::sendSyncPayloads()
 {
 	while(!this->m_terminate)
 	{
-		if(this->m_leftAdjacentServerConnection != nullptr)
-		{
-			try
-			{
-				// If we do have a connection, send the client list
-				dataMessage syncMessage(
-					this->m_connectedClients,
-					constants::serverNames[this->m_index],
-					constants::serverNames[this->m_leftAdjacentServerIndex],
-					constants::mt_SERVER_SYNC_LEFT);
+		std::vector<std::string> thisServersClients;
 
-				this->m_UDPsocket.send_to(
-					boost::asio::buffer(syncMessage.asCharVector()),
-					this->m_leftAdjacentServerConnection->viewEndpoint());
-			}
-			catch(std::exception& exception)
-			{
-				std::cout << exception.what() << std::endl;
-			}
-		}
-		else
+		for(const remoteConnection& currentClient : this->m_connectedClients)
 		{
-			// Do nothing, no valid left adjacent server
+			thisServersClients.push_back(currentClient.viewIdentifier());
 		}
 
-		// right adjacent server (if it exists)
-		if(this->m_rightAdjacentServerConnection != nullptr)
-		{
-			try
-			{
-				// If we do have a connection, send the client list
-				dataMessage syncMessage(
-					this->m_connectedClients,
-					constants::serverNames[this->m_index],
-					constants::serverNames[this->m_rightAdjacentServerIndex],
-					constants::mt_SERVER_SYNC_RIGHT);
+		this->m_clientsServedByServerIndex[this->m_index] =
+			thisServersClients;
 
-				this->m_UDPsocket.send_to(
-					boost::asio::buffer(syncMessage.asCharVector()),
-					this->m_rightAdjacentServerConnection->viewEndpoint());
-			}
-			catch(std::exception& exception)
-			{
-				std::cout << exception.what() << std::endl;
-			}
-		}
-		else
-		{
-			// Do nothing, no valid right adjacent server
-		}
+		this->sendSyncPayloadsLeft();
+		this->sendSyncPayloadsRight();
 
 		// sleep
 		boost::this_thread::sleep(
 			boost::posix_time::millisec(
 			constants::syncIntervalMilliseconds));
 	}
+};
+
+//--------------------------------------------------------- sendSyncPayloadsLeft
+// Implementation notes:
+//  #TODO_AH fix me
+//------------------------------------------------------------------------------
+void server::sendSyncPayloadsLeft()
+{
+	if(this->m_leftAdjacentServerConnection != nullptr)
+	{
+		for(int8_t i = this->m_index; i <= constants::highestServerIndex; i++)
+		{
+			if(this->m_clientsServedByServerIndex[i].size() == 0)
+			{
+				continue;
+			}
+			else
+			{
+				try
+				{
+					boost::system::error_code ignoredError;
+
+					const dataMessage syncMessageToSend(
+						this->sequenceNumber(),
+						constants::MessageType::mt_SERVER_SYNC,
+						constants::serverIndexToServerName(this->m_index),
+						constants::serverIndexToServerName(this->m_leftAdjacentServerIndex),
+						this->m_clientsServedByServerIndex[i],
+						i);
+
+					this->m_UDPsocket.send_to(
+						boost::asio::buffer(syncMessageToSend.asCharVector()),
+						this->m_leftAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+				}
+				catch(std::exception& exception)
+				{
+					// std::cout << exception.what() << std::endl;
+				}
+			}
+		}
+	}
+	else
+	{
+		// Do nothing
+	}
+};
+
+//--------------------------------------------------------- sendSyncPaylodsRight
+// Implementation notes:
+//  #TODO_AH fix me
+//------------------------------------------------------------------------------
+void server::sendSyncPayloadsRight()
+{
+	if(this->m_rightAdjacentServerConnection != nullptr)
+	{
+		for(int8_t i = this->m_index; i >= 0; i--)
+		{
+			if(this->m_clientsServedByServerIndex[i].size() == 0)
+			{
+				continue;
+			}
+			else
+			{
+				try
+				{
+					boost::system::error_code ignoredError;
+
+					const dataMessage syncMessageToSend(
+						this->sequenceNumber(),
+						constants::MessageType::mt_SERVER_SYNC,
+						constants::serverIndexToServerName(this->m_index),
+						constants::serverIndexToServerName(this->m_rightAdjacentServerIndex),
+						this->m_clientsServedByServerIndex[i],
+						i);
+
+					this->m_UDPsocket.send_to(
+						boost::asio::buffer(syncMessageToSend.asCharVector()),
+						this->m_rightAdjacentServerConnection->viewEndpoint(), 0, ignoredError);
+				}
+				catch(std::exception& exception)
+				{
+					// std::cout << exception.what() << std::endl;
+				}
+			}
+		}
+	}
+	else
+	{
+		// Do nothing
+	}
+
+};
+
+//--------------------------------------------------------------- sequenceNumber
+// Implementation notes:
+//  #TODO_AH fix me
+//------------------------------------------------------------------------------
+const int64_t& server::sequenceNumber()
+{
+	return ++this->m_sequenceNumber;
 };
 
 //------------------------------------------------- sendClientsToAdjacentServers
@@ -488,16 +531,11 @@ void server::receiveClientsFromAdjacentServers(
 {
 	switch(inSyncMessage.viewMessageType())
 	{
-		case constants::MessageType::mt_SERVER_SYNC_LEFT:
+		case constants::MessageType::mt_SERVER_SYNC:
 		{
-			this->m_rightAdjacentServerConnectedClients =
+			this->m_clientsServedByServerIndex[inSyncMessage.viewServerSyncPayloadOriginIndex()] =
 				inSyncMessage.viewServerSyncPayload();
-			break;
-		}
-		case constants::MessageType::mt_SERVER_SYNC_RIGHT:
-		{
-			this->m_leftAdjacentServerConnectedClients =
-				inSyncMessage.viewServerSyncPayload();
+
 			break;
 		}
 		default:

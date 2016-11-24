@@ -18,44 +18,25 @@ public:
 	
 	//-------------------------------------------------------------- constructor
 	// Brief Description
-	//  Constructor for the data message. Used primarily for creating a message
-	//  on the client side to send to the server. The parameters are populated
-	//  based on the parsed string from the command line.
-	//
-	// Method:    dataMessage
-	// FullName:  dataMessage::dataMessage
-	// Access:    public 
-	// Returns:   
-	// Parameter: const std::string& inPayload
-	// Parameter: const std::string& inSourceID
-	// Parameter: const std::string& inDestinationID
-	// Parameter: const constants::MessageType& inType
+	//  #TODO_AH fix me
 	//--------------------------------------------------------------------------
 	dataMessage(
-		const std::string& inPayload,
+		const constants::MessageType& inMessageType,
 		const std::string& inSourceID,
 		const std::string& inDestinationID,
-		const constants::MessageType& inType);
+		const std::string& inPayload);
 
 	//-------------------------------------------------------------- constructor
 	// Brief Description
-	//  Constructor for the data message. Used by servers to send sync messages
-	//  to each other.
-	//
-	// Method:    dataMessage
-	// FullName:  dataMessage::dataMessage
-	// Access:    public 
-	// Returns:   
-	// Parameter: std::vector<remoteConnection>& inServerSyncPayload
-	// Parameter: const std::string& inSourceID
-	// Parameter: const std::string& inDestinationID
-	// Parameter: const constants::MessageType& inType
+	//  #TODO_AH fix me
 	//--------------------------------------------------------------------------
 	dataMessage(
-		const std::vector<remoteConnection>& inServerSyncPayload,
+		const uint64_t& inSequenceNumber,
+		const constants::MessageType& inMessageType,
 		const std::string& inSourceID,
 		const std::string& inDestinationID,
-		const constants::MessageType& inType);
+		const std::vector<std::string>& inServerSyncPayload,
+		const int8_t& inServerSyncPayloadOriginIndex);
 
 	//-------------------------------------------------------------- constructor
 	// Brief Description
@@ -72,17 +53,22 @@ public:
 	dataMessage(
 		const std::vector<char>& inCharVector);
 
-	//-------------------------------------------------------------- viewPayload
+	// #TODO_AH fix me
+	const int64_t& viewSequenceNumber() const;
+
+	//---------------------------------------------------------- viewMessageType
 	// Brief Description
-	//  Returns a const reference to the payload string. This should always
-	//  represent the chat message a client wants to send.
+	//  Returns a const reference to the message type. This tells the server
+	//  what to do with a received message. (connection, disconnection, chat
+	//  message, etc) Can also be used by the client to determine how to display
+	//  a received message. (private vs broadcast)
 	//
-	// Method:    viewPayload
-	// FullName:  dataMessage::viewPayload
+	// Method:    viewMessageType
+	// FullName:  dataMessage::viewMessageType
 	// Access:    public 
-	// Returns:   const std::string&
+	// Returns:   const constants::MessageType&
 	//--------------------------------------------------------------------------
-	const std::string& viewPayload() const;
+	const constants::MessageType& viewMessageType() const;
 
 	//----------------------------------------------------- viewSourceIdentifier
 	// Brief Description
@@ -111,18 +97,20 @@ public:
 	//--------------------------------------------------------------------------
 	const std::string& viewDestinationIdentifier() const;
 
-	//----------------------------------------------------------- setMessageType
+	//-------------------------------------------------------------- viewPayload
 	// Brief Description
-	//  Sets the message type to the inMessageType for this object.
+	//  Returns a const reference to the payload string. This should always
+	//  represent the chat message a client wants to send.
 	//
-	// Method:    setMessageType
-	// FullName:  dataMessage::setMessageType
+	// Method:    viewPayload
+	// FullName:  dataMessage::viewPayload
 	// Access:    public 
-	// Returns:   void
-	// Parameter: const constants::MessageType& inMessageType
+	// Returns:   const std::string&
 	//--------------------------------------------------------------------------
-	void setMessageType(
-		const constants::MessageType& inMessageType);
+	const std::string& viewPayload() const;
+
+	// #TODO_AH fix me
+	const int8_t& viewServerSyncPayloadOriginIndex() const;
 	
 	//------------------------------------------------------ stringToMessageType
 	// Brief Description
@@ -137,20 +125,6 @@ public:
 	//--------------------------------------------------------------------------
 	const constants::MessageType stringToMessageType(
 		const std::string& inMessageTypeAsString) const;
-
-	//---------------------------------------------------------- viewMessageType
-	// Brief Description
-	//  Returns a const reference to the message type. This tells the server
-	//  what to do with a received message. (connection, disconnection, chat
-	//  message, etc) Can also be used by the client to determine how to display
-	//  a received message. (private vs broadcast)
-	//
-	// Method:    viewMessageType
-	// FullName:  dataMessage::viewMessageType
-	// Access:    public 
-	// Returns:   const constants::MessageType&
-	//--------------------------------------------------------------------------
-	const constants::MessageType& viewMessageType() const;
 
 	//-------------------------------------------------- viewMessageTypeAsString
 	// Brief Description
@@ -175,7 +149,7 @@ public:
 	// Parameter: const std::vector<remoteConnection>& inServerSyncPayload
 	//--------------------------------------------------------------------------
 	static std::string createServerSyncPayload(
-		const std::vector<remoteConnection>& inServerSyncPayload);
+		const std::vector<std::string>& inServerSyncPayload);
 
 	//---------------------------------------------------- viewServerSyncPayload
 	// Brief Description
@@ -188,31 +162,6 @@ public:
 	// Returns:   std::vector<std::string>
 	//--------------------------------------------------------------------------
 	std::vector<std::string> viewServerSyncPayload() const;
-
-	//--------------------------------------------------- relayToAdjacentServers
-	// Brief Description
-	//  Used to determine if the message should be relayed to adjacent
-	//  servers or not, necessary to avoid an infinite loop.
-	//
-	// Method:    relayToAdjacentServers
-	// FullName:  dataMessage::relayToAdjacentServers
-	// Access:    public 
-	// Returns:   const bool&
-	//--------------------------------------------------------------------------
-	const bool& relayToAdjacentServers() const;
-
-	//----------------------------------------------------- setServerRelayStatus
-	// Brief Description
-	//  Set the serverRelayStatus to the inRelayStatus
-	//
-	// Method:    setServerRelayStatus
-	// FullName:  dataMessage::setServerRelayStatus
-	// Access:    public 
-	// Returns:   void
-	// Parameter: const bool& inServerRelayStatus
-	//--------------------------------------------------------------------------
-	void setServerRelayStatus(
-		const bool& inServerRelayStatus);
 
 	//------------------------------------------------------------- asCharVector
 	// Brief Description
@@ -229,9 +178,10 @@ public:
 
 private:	
 	// Member Variables
-	std::string m_payload;
+	uint64_t m_sequenceNumber;
+	constants::MessageType m_messageType;
 	std::string m_sourceIdentifier;
 	std::string m_destinationIdentifier;
-	constants::MessageType m_messageType;
-	bool m_relayToAdjacentServers;
+	std::string m_payload;
+	int8_t m_serverSyncPayloadOriginIndex;
 };

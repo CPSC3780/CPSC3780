@@ -112,17 +112,22 @@ private:
 	void relayBluetooth(
 		const dataMessage& inMessageToSend);
 
-	//--------------------------------------------- sendClientsToAdjacentServers
+	//--------------------------------------------- sendSyncPayloads
 	// Brief Description
-	//  Sends a list of all clients connected to this server to the adjacent
-	//  servers if a connection can be established.
+	//  #TODO_AH fix me
 	//
-	// Method:    sendClientsToAdjacentServers
-	// FullName:  server::sendClientsToAdjacentServers
+	// Method:    sendSyncPayloads
+	// FullName:  server::sendSyncPayloads
 	// Access:    private 
 	// Returns:   void
 	//--------------------------------------------------------------------------
-	void sendClientsToAdjacentServers();
+	void sendSyncPayloads();
+
+	void sendSyncPayloadsLeft();
+
+	void sendSyncPayloadsRight();
+
+	const int64_t& sequenceNumber();
 
 	//---------------------------------------- receiveClientsFromAdjacentServers
 	// Brief Description
@@ -192,6 +197,7 @@ private:
 	boost::thread_group m_threads;
 
 	bool m_terminate;
+	uint64_t m_sequenceNumber;
 
 	std::queue<dataMessage> m_messageQueue;
 
@@ -199,9 +205,9 @@ private:
 
 	int8_t m_leftAdjacentServerIndex;
 	remoteConnection* m_leftAdjacentServerConnection;
-	std::vector<std::string> m_leftAdjacentServerConnectedClients;
 
 	int8_t m_rightAdjacentServerIndex;
 	remoteConnection* m_rightAdjacentServerConnection;
-	std::vector<std::string> m_rightAdjacentServerConnectedClients;
+
+	std::vector<std::string> m_clientsServedByServerIndex[constants::numberOfServers];
 };

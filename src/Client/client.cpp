@@ -32,7 +32,6 @@ client::client(
 	this->m_activeProtocol =
 		client::Protocol::p_UDP;
 
-	// #TODO can be hardcoded to lan ip, should make this dynamic
 	const std::string serverAddress = 
 		constants::serverHostName(this->m_serverIndex);
 
@@ -50,15 +49,14 @@ client::client(
 	this->m_UDPsocket.open(
 		boost::asio::ip::udp::v4());
 
+	std::string destination = constants::serverIndexToServerName(this->m_serverIndex);
 	std::string initiateMessage = this->m_username + " has connected.";
-	std::string source = this->m_username;
-	std::string destination = "broadcast";
 
 	dataMessage connectionMessage(
-		initiateMessage,
-		source,
+		constants::mt_CLIENT_CONNECT,
+		this->m_username,
 		destination,
-		constants::mt_CLIENT_CONNECT);
+		initiateMessage);
 
 	this->sendOverUDP(
 		connectionMessage);
@@ -118,10 +116,10 @@ void client::inputLoop()
 		}
 
 		dataMessage currentMessage(
-			chatInput,
+			messageType,
 			this->m_username,
 			destination,
-			messageType);
+			chatInput);
 
 		if(currentMessage.viewPayload() == "/exit")
 		{
@@ -131,10 +129,10 @@ void client::inputLoop()
 				this->m_username + " has disconnected.";
 
 			dataMessage currentMessage(
-				disconnectMessage,
+				constants::mt_CLIENT_DISCONNECT,
 				this->m_username,
 				destination,
-				constants::mt_CLIENT_DISCONNECT);
+				disconnectMessage);
 
 			this->sendOverUDP(currentMessage);
 
@@ -256,8 +254,7 @@ void client::receiveOverUDP()
 						<< message.viewPayload() << std::endl;
 					break;
 				}
-				case constants::MessageType::mt_SERVER_SYNC_LEFT:
-				case constants::MessageType::mt_SERVER_SYNC_RIGHT:
+				case constants::MessageType::mt_SERVER_SYNC:
 				{
 					// Syncs are only used by servers, never by clients
 					assert(false);
