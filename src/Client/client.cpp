@@ -23,11 +23,12 @@ client::client(
 	boost::asio::io_service& ioService) :
 	m_resolver(ioService),
 	m_UDPsocket(ioService),
-	m_serverPort(inServerPort)
+	m_serverPort(inServerPort),
+	m_terminate(false),
+	m_sequenceNumber(0)
 {
 	this->m_username = inUsername;
 	this->m_serverIndex = inServerIndex;
-	this->m_terminate = false;
 
 	this->m_activeProtocol =
 		client::Protocol::p_UDP;
@@ -53,6 +54,7 @@ client::client(
 	std::string initiateMessage = this->m_username + " has connected.";
 
 	dataMessage connectionMessage(
+		this->sequenceNumber(),
 		constants::mt_CLIENT_CONNECT,
 		this->m_username,
 		destination,
@@ -94,6 +96,7 @@ void client::getLoop()
 	while(!this->m_terminate)
 	{
 		dataMessage connectionMessage(
+			this->sequenceNumber(),
 			constants::mt_CLIENT_GET,
 			this->m_username,
 			constants::serverIndexToServerName(this->m_serverIndex),
@@ -150,6 +153,7 @@ void client::inputLoop()
 		}
 
 		dataMessage currentMessage(
+			this->sequenceNumber(),
 			messageType,
 			this->m_username,
 			destination,
@@ -163,6 +167,7 @@ void client::inputLoop()
 				this->m_username + " has disconnected.";
 
 			dataMessage currentMessage(
+				this->sequenceNumber(),
 				constants::MessageType::mt_CLIENT_DISCONNECT,
 				this->m_username,
 				destination,
@@ -294,6 +299,7 @@ void client::receiveOverUDP()
 						<< " says: " << message.viewPayload() << std::endl;
 
 					dataMessage ackMessage(
+						message.viewSequenceNumber(),
 						constants::mt_CLIENT_ACK,
 						this->m_username,
 						constants::serverIndexToServerName(this->m_serverIndex),
@@ -345,4 +351,13 @@ void client::receiveOverUDP()
 void client::receiveOverBluetooth()
 {
 	// #TODO implement receiving over Bluetooth for the client
+};
+
+//--------------------------------------------------------------- sequenceNumber
+// Implementation notes:
+//  #TODO_AH fix me
+//------------------------------------------------------------------------------
+const int64_t& client::sequenceNumber()
+{
+	return ++this->m_sequenceNumber;
 };

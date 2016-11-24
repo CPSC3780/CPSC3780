@@ -11,12 +11,13 @@
 //  Used to create a data message object to send
 //------------------------------------------------------------------------------
 dataMessage::dataMessage(
+	const int64_t& inSequenceNumber,
 	const constants::MessageType& inMessageType,
 	const std::string& inSourceID,
 	const std::string& inDestinationID,
 	const std::string& inPayload)
 {
-	this->m_sequenceNumber = -1;
+	this->m_sequenceNumber = inSequenceNumber;
 	this->m_messageType = inMessageType;
 	this->m_sourceIdentifier = inSourceID;
 	this->m_destinationIdentifier = inDestinationID;

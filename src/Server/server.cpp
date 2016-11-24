@@ -185,7 +185,8 @@ void server::listenLoopUDP()
 				}
 				case constants::MessageType::mt_CLIENT_ACK:
 				{
-					// #TODO_AH implement
+					this->removeReceivedMessageFromList(
+						message);
 					break;
 				}
 				case constants::MessageType::mt_SERVER_SEND:
@@ -269,6 +270,29 @@ void server::sendMessagesToClient(
 		else
 		{
 			// Do nothing, target client is not the one we want
+		}
+	}
+}
+
+//------------------------------------------------ removeReceivedMessageFromList
+// Implementation notes:
+//  Removes the message the client confirmed to have received from the list
+//------------------------------------------------------------------------------
+void server::removeReceivedMessageFromList(
+	const dataMessage& inMessage)
+{
+	for(std::list<dataMessage>::iterator it = this->m_messageList.begin();
+		it != this->m_messageList.end();
+		it++)
+	{
+		if(it->viewSequenceNumber()== inMessage.viewSequenceNumber())
+		{
+			this->m_messageList.erase(it);
+			break;
+		}
+		else
+		{
+			continue;
 		}
 	}
 };

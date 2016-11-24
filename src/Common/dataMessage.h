@@ -21,6 +21,7 @@ public:
 	//  #TODO_AH fix me
 	//--------------------------------------------------------------------------
 	dataMessage(
+		const int64_t& inSequenceNumber,
 		const constants::MessageType& inMessageType,
 		const std::string& inSourceID,
 		const std::string& inDestinationID,

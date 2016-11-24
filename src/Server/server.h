@@ -18,7 +18,7 @@
 class server
 {
 public:
-	
+
 	//-------------------------------------------------------------- constructor
 	// Brief Description
 	//  Constructor for the server
@@ -85,6 +85,10 @@ private:
 	//--------------------------------------------------------------------------
 	void sendMessagesToClient(
 		const std::string& inClientIdentifier);
+
+	// #TODO_AH fix me
+	void removeReceivedMessageFromList(
+		const dataMessage& inMessage);
 
 	//------------------------------------------------------ listenLoopBluetooth
 	// Brief Description
