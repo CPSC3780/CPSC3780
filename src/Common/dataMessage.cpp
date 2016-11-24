@@ -243,7 +243,7 @@ std::string dataMessage::createServerSyncPayload(
 
 	for(const std::string& currentClient : inServerSyncPayload)
 	{
-		constructedPayload += currentClient;
+		constructedPayload += currentClient + constants::syncIdentifierDelimiter();
 	}
 
 	return constructedPayload;

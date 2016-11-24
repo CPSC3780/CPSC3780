@@ -154,7 +154,7 @@ void server::listenLoop()
 				receivedPayload);
 
 			std::cout << "Received " << message.viewMessageTypeAsString();
-			std::cout << " message from " << message.viewSourceIdentifier() << std::endl;
+			std::cout << " message from " << message.viewSourceIdentifier();
 
 			switch(message.viewMessageType())
 			{
@@ -168,7 +168,6 @@ void server::listenLoop()
 				}
 				case constants::MessageType::mt_CLIENT_DISCONNECT:
 				{
-
 					this->removeClientConnection(
 						message.viewSourceIdentifier());
 					break;
@@ -187,6 +186,9 @@ void server::listenLoop()
 				{
 					this->receiveClientsFromAdjacentServers(
 						message);
+
+					std::cout << " (Origin: " << constants::serverIndexToServerName(
+						message.viewServerSyncPayloadOriginIndex()) << ")" << std::endl;
 					continue;
 					break;
 				}
@@ -195,6 +197,8 @@ void server::listenLoop()
 					assert(false);
 				}
 			}
+
+			std::cout << std::endl;
 
 			this->addToMessageQueue(
 				message);
