@@ -31,7 +31,7 @@ public:
 	//  #TODO_AH fix me
 	//--------------------------------------------------------------------------
 	dataMessage(
-		const uint64_t& inSequenceNumber,
+		const int64_t& inSequenceNumber,
 		const constants::MessageType& inMessageType,
 		const std::string& inSourceID,
 		const std::string& inDestinationID,
@@ -178,7 +178,7 @@ public:
 
 private:	
 	// Member Variables
-	uint64_t m_sequenceNumber;
+	int64_t m_sequenceNumber;
 	constants::MessageType m_messageType;
 	std::string m_sourceIdentifier;
 	std::string m_destinationIdentifier;

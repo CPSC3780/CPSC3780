@@ -29,7 +29,7 @@ dataMessage::dataMessage(
 //  Used to create a data message object to send
 //------------------------------------------------------------------------------
 dataMessage::dataMessage(
-	const uint64_t& inSequenceNumber,
+	const int64_t& inSequenceNumber,
 	const constants::MessageType& inMessageType,
 	const std::string& inSourceID,
 	const std::string& inDestinationID,

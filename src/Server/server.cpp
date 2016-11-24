@@ -199,10 +199,11 @@ void server::listenLoop()
 			this->addToMessageQueue(
 				message);
 		}
-		catch(std::exception& exception)
+		catch(...)
 		{
-			// std::cout << exception.what() << std::endl;
+
 		}
+
 	}
 };
 
@@ -432,7 +433,10 @@ void server::sendSyncPayloadsLeft()
 	{
 		for(int8_t i = this->m_index; i <= constants::highestServerIndex; i++)
 		{
-			if(this->m_clientsServedByServerIndex[i].size() == 0)
+			const size_t clientListSize =
+				this->m_clientsServedByServerIndex[i].size();
+
+			if(clientListSize == 0)
 			{
 				continue;
 			}
@@ -477,7 +481,10 @@ void server::sendSyncPayloadsRight()
 	{
 		for(int8_t i = this->m_index; i >= 0; i--)
 		{
-			if(this->m_clientsServedByServerIndex[i].size() == 0)
+			const size_t clientListSize =
+				this->m_clientsServedByServerIndex[i].size();
+
+			if(clientListSize == 0)
 			{
 				continue;
 			}
