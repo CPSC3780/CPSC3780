@@ -55,7 +55,17 @@ public:
 
 private:
 	
-	// #TODO_AH fix me
+	//------------------------------------------------------------------ getLoop
+	// Brief Description
+	//  The client loop that periodically sends get requests to the server.
+	//  Essentially, this is what drives the client. Without it, the client
+	//  would never receive any messages.
+	//
+	// Method:    getLoop
+	// FullName:  client::getLoop
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
 	void getLoop();
 
 	//---------------------------------------------------------------- inputLoop
@@ -131,7 +141,17 @@ private:
 	//--------------------------------------------------------------------------
 	void receiveOverBluetooth();
 
-	// #TODO_AH fix me
+	//----------------------------------------------------------- sequenceNumber
+	// Brief Description
+	//  The sequence number for the client. This increments every time it is
+	//  called and can be used to verify which messages were received by
+	//  the server.
+	//
+	// Method:    sequenceNumber
+	// FullName:  client::sequenceNumber
+	// Access:    private 
+	// Returns:   const int64_t&
+	//--------------------------------------------------------------------------
 	const int64_t& sequenceNumber();
 
 	// Member Variables

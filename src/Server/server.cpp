@@ -111,7 +111,7 @@ void server::run()
 	this->m_threads.create_thread(
 		boost::bind(&server::listenLoopUDP, this));
 
-	// thread for listening/acting via Blueooth
+	// thread for listening/acting via Bluetooth
 	this->m_threads.create_thread(
 		boost::bind(&server::listenLoopBluetooth, this));
 
@@ -197,7 +197,7 @@ void server::listenLoopUDP()
 				}
 				case constants::MessageType::mt_SERVER_ACK:
 				{
-					// #TODO_AH implement
+					// #TODO necessary?
 					break;
 				}
 				case constants::MessageType::mt_SERVER_SYNC:
@@ -300,8 +300,8 @@ void server::removeReceivedMessageFromList(
 
 //----------------------------------------------------- processClientSendMessage
 // Implementation notes:
-//  Determines if the message the client send should be kept on this server
-//  or if it should be forward to another server
+//  Determines if the message the client sent should be kept on this server
+//  or if it should be forwarded to another server
 //------------------------------------------------------------------------------
 void server::processClientSendMessage(
 	const dataMessage& inMessage)
@@ -503,7 +503,8 @@ void server::listenLoopBluetooth()
 
 //------------------------------------------------------------- sendSyncPayloads
 // Implementation notes:
-//  #TODO_AH fix me
+//  Sends the sync payloads for this server and all known servers to adjacent
+//  servers if they exists. This is done as one UDP message per server.
 //------------------------------------------------------------------------------
 void server::sendSyncPayloads()
 {
@@ -531,7 +532,7 @@ void server::sendSyncPayloads()
 
 //--------------------------------------------------------- sendSyncPayloadsLeft
 // Implementation notes:
-//  #TODO_AH fix me
+//  Sends all known sync payloads to the left adjacent server
 //------------------------------------------------------------------------------
 void server::sendSyncPayloadsLeft()
 {
@@ -579,7 +580,7 @@ void server::sendSyncPayloadsLeft()
 
 //--------------------------------------------------------- sendSyncPaylodsRight
 // Implementation notes:
-//  #TODO_AH fix me
+//  Sends all known sync payloads to the right adjacent server
 //------------------------------------------------------------------------------
 void server::sendSyncPayloadsRight()
 {
@@ -628,7 +629,7 @@ void server::sendSyncPayloadsRight()
 
 //--------------------------------------------------------------- sequenceNumber
 // Implementation notes:
-//  #TODO_AH fix me
+//  Increments the sequence number every time it is used, self explanatory.
 //------------------------------------------------------------------------------
 const int64_t& server::sequenceNumber()
 {

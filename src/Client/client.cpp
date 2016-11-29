@@ -328,8 +328,7 @@ void client::receiveOverUDP()
 				}
 				case constants::MessageType::mt_PING:
 				{
-					// #TODO_AH implement? necessary?
-					// Do nothing
+					// #TODO necessary?
 					break;
 				}
 				default:
@@ -362,7 +361,7 @@ void client::receiveOverBluetooth()
 
 //--------------------------------------------------------------- sequenceNumber
 // Implementation notes:
-//  #TODO_AH fix me
+//  Increments the sequence number every time it is used, self explanatory.
 //------------------------------------------------------------------------------
 const int64_t& client::sequenceNumber()
 {
