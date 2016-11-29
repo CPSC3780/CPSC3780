@@ -16,9 +16,22 @@ class dataMessage
 {
 public:
 	
-	//-------------------------------------------------------------- constructor
+
+	//-------------------------------------------------------------- dataMessage
 	// Brief Description
-	//  #TODO_AH fix me
+	//  Constructor for the data message. Primarily used by the client to create a 
+	//  message to send to the server, but can also be used by the server
+	//  to send it a message following a get request.
+	//
+	// Method:    dataMessage
+	// FullName:  dataMessage::dataMessage
+	// Access:    public 
+	// Returns:   
+	// Parameter: const int64_t& inSequenceNumber
+	// Parameter: const constants::MessageType& inMessageType
+	// Parameter: const std::string& inSourceID
+	// Parameter: const std::string& inDestinationID
+	// Parameter: const std::string& inPayload
 	//--------------------------------------------------------------------------
 	dataMessage(
 		const int64_t& inSequenceNumber,
@@ -27,9 +40,22 @@ public:
 		const std::string& inDestinationID,
 		const std::string& inPayload);
 
-	//-------------------------------------------------------------- constructor
+
+	//-------------------------------------------------------------- dataMessage
 	// Brief Description
-	//  #TODO_AH fix me
+	//  Constructor for the data message. This constructor is used explicitly
+	//  by servers to send each other sync payloads.
+	//
+	// Method:    dataMessage
+	// FullName:  dataMessage::dataMessage
+	// Access:    public 
+	// Returns:   
+	// Parameter: const int64_t& inSequenceNumber
+	// Parameter: const constants::MessageType& inMessageType
+	// Parameter: const std::string& inSourceID
+	// Parameter: const std::string& inDestinationID
+	// Parameter: const std::vector<std::string>& inServerSyncPayload
+	// Parameter: const int8_t& inServerSyncPayloadOriginIndex
 	//--------------------------------------------------------------------------
 	dataMessage(
 		const int64_t& inSequenceNumber,
@@ -41,9 +67,9 @@ public:
 
 	//-------------------------------------------------------------- constructor
 	// Brief Description
-	//  Constructor for the data message. Used primarily for creating messages
-	//  on the server side. A received message arrive as a vector of chars, and
-	//  this constructor turns it back to the more usable data message object.
+	//  Constructor for the data message. Used primarily for receiving
+	//  messages. Messages arrive as a vector of chars, and this constructor 
+	//  turns it back to the more usable data message object.
 	//
 	// Method:    dataMessage
 	// FullName:  dataMessage::dataMessage
@@ -54,7 +80,18 @@ public:
 	dataMessage(
 		const std::vector<char>& inCharVector);
 
-	// #TODO_AH fix me
+
+	//------------------------------------------------------- viewSequenceNumber
+	// Brief Description
+	//  Returns a const reference to the sequence number. This can be used
+	//  by the server and client to verify if a message was received or not
+	//  if the same sequence number is sent back in an ACK.
+	//
+	// Method:    viewSequenceNumber
+	// FullName:  dataMessage::viewSequenceNumber
+	// Access:    public 
+	// Returns:   const int64_t&
+	//--------------------------------------------------------------------------
 	const int64_t& viewSequenceNumber() const;
 
 	//---------------------------------------------------------- viewMessageType
@@ -122,7 +159,18 @@ public:
 	//--------------------------------------------------------------------------
 	const std::string& viewPayload() const;
 
-	// #TODO_AH fix me
+
+	//----------------------------------------- viewServerSyncPayloadOriginIndex
+	// Brief Description
+	//  This is used by servers when receiving a sync payload from another
+	//  server. It specifies what server the list of clients in the payload
+	//  for this message belongs to.
+	//
+	// Method:    viewServerSyncPayloadOriginIndex
+	// FullName:  dataMessage::viewServerSyncPayloadOriginIndex
+	// Access:    public 
+	// Returns:   const int8_t&
+	//--------------------------------------------------------------------------
 	const int8_t& viewServerSyncPayloadOriginIndex() const;
 	
 	//------------------------------------------------------ stringToMessageType

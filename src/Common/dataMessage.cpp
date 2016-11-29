@@ -80,7 +80,7 @@ dataMessage::dataMessage(
 
 //----------------------------------------------------------- viewSequenceNumber
 // Implementation notes:
-//  #TODO_AH fix me
+//  Returns a cont reference to the sequence number of the message
 //------------------------------------------------------------------------------
 const int64_t& dataMessage::viewSequenceNumber() const
 {
@@ -135,7 +135,7 @@ const std::string& dataMessage::viewPayload() const
 
 //--------------------------------------------- viewServerSyncPayloadOriginIndex
 // Implementation notes:
-//  Returns a const reference to the payload string
+//  Returns a const reference to the server sync payload origin index integer
 //------------------------------------------------------------------------------
 const int8_t& dataMessage::viewServerSyncPayloadOriginIndex() const
 {

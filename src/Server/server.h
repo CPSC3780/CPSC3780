@@ -86,15 +86,56 @@ private:
 	void sendMessagesToClient(
 		const std::string& inClientIdentifier);
 
-	// #TODO_AH fix me
+	//-------------------------------------------- removeReceivedMessageFromList
+	// Brief Description
+	//  Removes the corresponding message specified via the input parameter
+	//  from the message list. This is usually done in response to getting
+	//  an ACK from the client. Once a message has been confirmed received
+	//  by the intended client, it is no longer necessary to store it on the
+	//  server.
+	//
+	// Method:    removeReceivedMessageFromList
+	// FullName:  server::removeReceivedMessageFromList
+	// Access:    private 
+	// Returns:   void
+	// Parameter: const dataMessage& inMessage
+	//--------------------------------------------------------------------------
 	void removeReceivedMessageFromList(
 		const dataMessage& inMessage);
 
-	// #TODO_AH fix me
+
+	//------------------------------------------------- processClientSendMessage
+	// Brief Description
+	//  Determines if the message a client sent should be stored on this server
+	//  or if it should be routed to a connected server instead. A message
+	//  is only kept on this server if it the client it is destined for is
+	//  connected to this server. If the client it is destined for is on another
+	//  server, it will forward it in that direction, and the servers in line
+	//  will continually forward it until it arrives where it should.
+	//
+	// Method:    processClientSendMessage
+	// FullName:  server::processClientSendMessage
+	// Access:    private 
+	// Returns:   void
+	// Parameter: const dataMessage& inMessage
+	//--------------------------------------------------------------------------
 	void processClientSendMessage(
 		const dataMessage& inMessage);
 
-	// #TODO_AH fix me
+	
+	//------------------------------------------------ processServerRelayMessage
+	// Brief Description
+	//  Determines if a message that was forwarded from another server has
+	//  reached its destination, or if it should continue forwarding.
+	//  A message has reached its destination if the client it is destined
+	//  for is connected to this server.
+	//
+	// Method:    processServerRelayMessage
+	// FullName:  server::processServerRelayMessage
+	// Access:    private 
+	// Returns:   void
+	// Parameter: const dataMessage& inMessage
+	//--------------------------------------------------------------------------
 	void processServerRelayMessage(
 		const dataMessage& inMessage);
 
@@ -110,9 +151,23 @@ private:
 	//--------------------------------------------------------------------------
 	void listenLoopBluetooth();
 
-	//--------------------------------------------- sendSyncPayloads
+	//----------------------------------------------------------- attemptForward
 	// Brief Description
-	//  #TODO_AH fix me
+	//  Periodically cycles through all the messages on this server and
+	//  determines if they should be forwarded to another server, or kept
+	//  on this server instead.
+	//
+	// Method:    attemptForward
+	// FullName:  server::attemptForward
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
+	void attemptForward();
+
+	//--------------------------------------------------------- sendSyncPayloads
+	// Brief Description
+	//  The main sync loop between servers. This routinely forwards all known
+	//  client lists for each server to the adjacent servers.
 	//
 	// Method:    sendSyncPayloads
 	// FullName:  server::sendSyncPayloads
@@ -121,8 +176,28 @@ private:
 	//--------------------------------------------------------------------------
 	void sendSyncPayloads();
 
+	//----------------------------------------------------- sendSyncPayloadsLeft
+	// Brief Description
+	//  Helper function that forwards the client lists to the left adjacent
+	//  server.
+	//
+	// Method:    sendSyncPayloadsLeft
+	// FullName:  server::sendSyncPayloadsLeft
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
 	void sendSyncPayloadsLeft();
 
+	//---------------------------------------------------- sendSyncPayloadsRight
+	// Brief Description
+	//  Helper function that forwards the client lists to the right adjacent
+	//  server.
+	//
+	// Method:    sendSyncPayloadsRight
+	// FullName:  server::sendSyncPayloadsRight
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
 	void sendSyncPayloadsRight();
 
 	const int64_t& sequenceNumber();
@@ -187,6 +262,22 @@ private:
 	void addToMessageList(
 		dataMessage message);
 
+	//------------------------------------ addToMessageListOfUnassociatedClients
+	// Brief Description
+	//  Adds a message to the list that contains all messages for which the
+	//  server was unable to determine what server serves that client. This
+	//  list is periodically checked and the server will attempt to
+	//  find the server associated with a particular client.
+	//
+	// Method:    addToMessageListOfUnassociatedClients
+	// FullName:  server::addToMessageListOfUnassociatedClients
+	// Access:    private 
+	// Returns:   void
+	// Parameter: dataMessage message
+	//--------------------------------------------------------------------------
+	void addToMessageListOfUnassociatedClients(
+		dataMessage message);
+
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::asio::ip::udp::resolver m_resolver;
@@ -198,6 +289,7 @@ private:
 	int64_t m_sequenceNumber;
 
 	std::list<dataMessage> m_messageList;
+	std::list<dataMessage> m_messageListOfUnassociatedClients;
 
 	std::vector<remoteConnection> m_connectedClients;
 
