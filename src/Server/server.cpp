@@ -119,6 +119,11 @@ void server::run()
 	this->m_threads.create_thread(
 		boost::bind(&server::sendSyncPayloads, this));
 
+	// thread that attempts to forward messages where the target 
+	// client was not found previously
+	this->m_threads.create_thread(
+		boost::bind(&server::attemptForward, this));
+
 	this->m_threads.join_all();
 };
 
@@ -227,9 +232,8 @@ void server::listenLoopUDP()
 		{
 
 		}
-
 	}
-}
+};
 
 //---------------------------------------------------------- sendMessageToClient
 // Implementation notes:
@@ -273,7 +277,7 @@ void server::sendMessagesToClient(
 			// Do nothing, target client is not the one we want
 		}
 	}
-}
+};
 
 //------------------------------------------------ removeReceivedMessageFromList
 // Implementation notes:
@@ -296,7 +300,7 @@ void server::removeReceivedMessageFromList(
 			continue;
 		}
 	}
-}
+};
 
 //----------------------------------------------------- processClientSendMessage
 // Implementation notes:
@@ -329,8 +333,8 @@ void server::processClientSendMessage(
 	}
 
 	// check clients on servers to the left
-	for(int8_t serverIndex = 0; 
-		serverIndex < this->m_index; 
+	for(int8_t serverIndex = 0;
+		serverIndex < this->m_index;
 		serverIndex++)
 	{
 		for(size_t i = 0;
@@ -373,8 +377,8 @@ void server::processClientSendMessage(
 	}
 
 	// check clients on servers to the right
-	for(int8_t serverIndex = constants::highestServerIndex; 
-		serverIndex > this->m_index; 
+	for(int8_t serverIndex = constants::highestServerIndex;
+		serverIndex > this->m_index;
 		serverIndex--)
 	{
 		for(size_t i = 0;
@@ -417,7 +421,7 @@ void server::processClientSendMessage(
 	}
 
 	// if we make it here, as per the requirements, we hold on to the message
-	this->addToMessageList(
+	this->addToMessageListOfUnassociatedClients(
 		inMessage);
 };
 
@@ -498,6 +502,37 @@ void server::listenLoopBluetooth()
 	while(!this->m_terminate)
 	{
 		// #TODO_MT implement
+	}
+};
+
+//--------------------------------------------------------------- attemptForward
+// Implementation notes:
+//  Listens and acts via Bluetooth
+//------------------------------------------------------------------------------
+void server::attemptForward()
+{
+	while(!this->m_terminate)
+	{
+		// handle potential weird behavior with deletions
+		const size_t currentMessageListSize =
+			this->m_messageListOfUnassociatedClients.size();
+
+		for(size_t i = 0; i < currentMessageListSize; i++)
+		{
+
+			const dataMessage messageToCheck =
+				this->m_messageListOfUnassociatedClients.front();
+
+			this->m_messageListOfUnassociatedClients.pop_front();
+
+			this->processClientSendMessage(
+				messageToCheck);
+		}
+
+		// sleep
+		boost::this_thread::sleep(
+			boost::posix_time::millisec(
+			constants::forwardIntervalMilliseconds));
 	}
 };
 
@@ -689,5 +724,19 @@ void server::addToMessageList(
 		constants::MessageType::mt_SERVER_SEND);
 
 	this->m_messageList.push_back(
+		message);
+};
+
+//---------------------------------------- addToMessageListOfUnassociatedClients
+// Implementation notes:
+//  Add a new message to the message list of unassociated clients
+//------------------------------------------------------------------------------
+void server::addToMessageListOfUnassociatedClients(
+	dataMessage message)
+{
+	message.setMessageType(
+		constants::MessageType::mt_CLIENT_SEND);
+
+	this->m_messageListOfUnassociatedClients.push_back(
 		message);
 };

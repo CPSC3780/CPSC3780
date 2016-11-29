@@ -151,6 +151,19 @@ private:
 	//--------------------------------------------------------------------------
 	void listenLoopBluetooth();
 
+	//----------------------------------------------------------- attemptForward
+	// Brief Description
+	//  Periodically cycles through all the messages on this server and
+	//  determines if they should be forwarded to another server, or kept
+	//  on this server instead.
+	//
+	// Method:    attemptForward
+	// FullName:  server::attemptForward
+	// Access:    private 
+	// Returns:   void
+	//--------------------------------------------------------------------------
+	void attemptForward();
+
 	//--------------------------------------------------------- sendSyncPayloads
 	// Brief Description
 	//  The main sync loop between servers. This routinely forwards all known
@@ -249,6 +262,22 @@ private:
 	void addToMessageList(
 		dataMessage message);
 
+	//------------------------------------ addToMessageListOfUnassociatedClients
+	// Brief Description
+	//  Adds a message to the list that contains all messages for which the
+	//  server was unable to determine what server serves that client. This
+	//  list is periodically checked and the server will attempt to
+	//  find the server associated with a particular client.
+	//
+	// Method:    addToMessageListOfUnassociatedClients
+	// FullName:  server::addToMessageListOfUnassociatedClients
+	// Access:    private 
+	// Returns:   void
+	// Parameter: dataMessage message
+	//--------------------------------------------------------------------------
+	void addToMessageListOfUnassociatedClients(
+		dataMessage message);
+
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
 	boost::asio::ip::udp::resolver m_resolver;
@@ -260,6 +289,7 @@ private:
 	int64_t m_sequenceNumber;
 
 	std::list<dataMessage> m_messageList;
+	std::list<dataMessage> m_messageListOfUnassociatedClients;
 
 	std::vector<remoteConnection> m_connectedClients;
 
