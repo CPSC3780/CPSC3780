@@ -1,3 +1,9 @@
+// Winsock
+#include <winsock2.h>
+#include <ws2bth.h>
+#include <bthsdpdef.h>
+#include <bluetoothapis.h>
+#include <stdio.h>
 // STL
 #include <cstdint>
 #include <iostream>
@@ -32,6 +38,7 @@ server::server(
 	m_leftAdjacentServerConnection(nullptr),
 	m_rightAdjacentServerIndex(inServerIndex + 1),
 	m_rightAdjacentServerConnection(nullptr)
+
 {
 	const std::string serverName(
 		constants::serverIndexToServerName(inServerIndex));
@@ -740,3 +747,13 @@ void server::addToMessageListOfUnassociatedClients(
 	this->m_messageListOfUnassociatedClients.push_back(
 		message);
 };
+
+//------------------------------------ findBluetoothRadios
+// Implementation notes
+//  Searches for Bluetooth radios
+//--------------------------------------------------------------------------
+void server::findBluetoothRadios()
+{
+	BLUETOOTH_FIND_RADIO_PARAMS findParams;
+	findParams.dwSize = sizeof(BLUETOOTH_FIND_RADIO_PARAMS);
+}

@@ -1,3 +1,4 @@
+// Winsock
 // STL
 #include <iostream>
 #include <cstdint>
@@ -10,6 +11,14 @@
 
 int main()
 {
+	WSADATA wsaData;
+	int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if(iResult != 0)
+	{
+		wprintf(L"WSAStartup failed: %d\n", iResult);
+		return 1;
+	}
+
 	try
 	{
 		char identifier;

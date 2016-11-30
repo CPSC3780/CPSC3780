@@ -277,6 +277,17 @@ private:
 	//--------------------------------------------------------------------------
 	void addToMessageListOfUnassociatedClients(
 		dataMessage message);
+	//------------------------------------ findBluetoothRadios
+	// Brief Description
+	//  Searches for bluetooth radios
+	//
+	// Method:    findBluetoothRadios
+	// FullName:  server::findBluetoothRadios
+	// Access:    private 
+	// Returns:   void
+	// Parameter: none
+	//--------------------------------------------------------------------------
+	void findBluetoothRadios();
 
 	// Member Variables
 	boost::asio::ip::udp::socket m_UDPsocket;
