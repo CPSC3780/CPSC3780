@@ -7,6 +7,9 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 
+// other
+#include <winsock2.h>
+
 // Project
 #include "server.h"
 #include "../Common/constants.h"
