@@ -4,6 +4,7 @@
 #include <bthsdpdef.h>
 #include <bluetoothapis.h>
 #include <stdio.h>
+
 // STL
 #include <cstdint>
 #include <iostream>
@@ -748,10 +749,10 @@ void server::addToMessageListOfUnassociatedClients(
 		message);
 };
 
-//------------------------------------ findBluetoothRadios
+//---------------------------------------------------------- findBluetoothRadios
 // Implementation notes
 //  Searches for Bluetooth radios
-//--------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void server::findBluetoothRadios()
 {
 	BLUETOOTH_FIND_RADIO_PARAMS findParams;

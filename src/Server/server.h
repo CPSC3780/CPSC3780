@@ -277,15 +277,15 @@ private:
 	//--------------------------------------------------------------------------
 	void addToMessageListOfUnassociatedClients(
 		dataMessage message);
-	//------------------------------------ findBluetoothRadios
+
+	//------------------------------------------------------ findBluetoothRadios
 	// Brief Description
-	//  Searches for bluetooth radios
+	//  Searches for Bluetooth radios
 	//
 	// Method:    findBluetoothRadios
 	// FullName:  server::findBluetoothRadios
 	// Access:    private 
 	// Returns:   void
-	// Parameter: none
 	//--------------------------------------------------------------------------
 	void findBluetoothRadios();
 
