@@ -4,7 +4,7 @@
 #include <bthsdpdef.h>
 #include <bluetoothapis.h>
 #include <stdio.h>
-
+#include <tchar.h>
 // STL
 #include <cstdint>
 #include <iostream>
@@ -94,6 +94,7 @@ server::server(
 			constants::serverIndexToServerName(this->m_rightAdjacentServerIndex),
 			rightAdjacentServerEndPoint);
 	}
+	this->findBluetoothRadios();
 };
 
 //------------------------------------------------------------------- destructor
@@ -509,7 +510,23 @@ void server::listenLoopBluetooth()
 {
 	while(!this->m_terminate)
 	{
-		// #TODO_MT implement
+		if(listen(this->m_btSocket, 5))
+		{
+			//Perform error handling
+			closesocket(this->m_btSocket);
+		}
+		SOCKADDR_BTH clientAddr;
+		int size = sizeof(clientAddr);
+		SOCKET clientSocket = accept(this->m_btSocket, (SOCKADDR *)&clientAddr, &size);
+		if(clientSocket != INVALID_SOCKET)
+		{
+			wprintf(L"Client connected from %04x%08x on channel %d.",
+				GET_NAP(clientAddr.btAddr), GET_SAP(clientAddr.btAddr), clientAddr.port);
+			char* message = "Hello, world";
+			send(clientSocket, message, sizeof(message), 0);
+			char buffer[1024] = {0};
+			int dataSize = recv(clientSocket, buffer, sizeof(buffer), 0);
+		}
 	}
 };
 
@@ -757,4 +774,45 @@ void server::findBluetoothRadios()
 {
 	BLUETOOTH_FIND_RADIO_PARAMS findParams;
 	findParams.dwSize = sizeof(BLUETOOTH_FIND_RADIO_PARAMS);
+	HANDLE bluetoothRadio;
+	HBLUETOOTH_RADIO_FIND radioFindHandle = BluetoothFindFirstRadio(&findParams, &bluetoothRadio);
+	if(radioFindHandle != nullptr)
+	{
+		wprintf(L"Found Bluetooth radio\n");
+		wprintf(L"Opening server socket for bluetooth connections...\n");
+		SOCKET btSock = socket(AF_BTH, SOCK_STREAM, BTHPROTO_RFCOMM);
+		if(btSock == INVALID_SOCKET)
+			wprintf(L"Error creating socket: %d\n", WSAGetLastError());
+		else
+		{
+			this->m_btSocket = btSock;
+			WSAPROTOCOL_INFO protoInfo;
+			int infoStructSize = sizeof(protoInfo);
+			if(getsockopt(btSock, SOL_SOCKET, SO_PROTOCOL_INFO, (char*)&protoInfo, &infoStructSize))
+			{
+				wprintf(L"Error getting socket options: %d\n", WSAGetLastError());
+			}
+			else
+			{
+				// Bind the socket
+				SOCKADDR_BTH address;
+				address.addressFamily = AF_BTH;
+				address.btAddr = 0;
+				address.serviceClassId = GUID_NULL;
+				address.port = BT_PORT_ANY;
+				if(bind(btSock, (sockaddr*)&address, sizeof(address)))
+				{
+					wprintf(L"Error binding socket: %d\n", WSAGetLastError());
+				}
+				else
+				{
+					int addressLen = sizeof(address);
+					sockaddr* pAddress = (sockaddr*)&address;
+					getsockname(btSock, pAddress, &addressLen);
+					wprintf(L"Bind Successful: device=%04x%08x channel = %d\n",
+						GET_NAP(address.btAddr), GET_SAP(address.btAddr), address.port);
+				}
+			}
+		}
+	}
 }

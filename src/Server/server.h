@@ -1,5 +1,11 @@
 #pragma once
-
+// Winsock
+#include <winsock2.h>
+#include <ws2bth.h>
+#include <bthsdpdef.h>
+#include <bluetoothapis.h>
+#include <stdio.h>
+#include <tchar.h>
 // Boost
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
@@ -295,6 +301,7 @@ private:
 	boost::asio::io_service* m_ioService;
 	int8_t m_index;
 	boost::thread_group m_threads;
+	SOCKET m_btSocket;
 
 	bool m_terminate;
 	int64_t m_sequenceNumber;
